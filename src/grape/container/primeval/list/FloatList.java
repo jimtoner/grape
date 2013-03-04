@@ -1,8 +1,12 @@
 package grape.container.primeval.list;
 
+import java.io.Serializable;
 import java.util.Collection;
+import java.util.RandomAccess;
 
-public class FloatList {
+public class FloatList implements RandomAccess, Cloneable, Serializable {
+
+	private static final long serialVersionUID = 1L;
 
 	private static final int DEFAULT_INITICAL_CAPACITY = 16;
 
@@ -66,9 +70,8 @@ public class FloatList {
 	}
 
 	public void addAll(Collection<Float> c) {
-		for (Float s : c) {
+		for (Float s : c)
 			add(s);
-		}
 	}
 
 	public void addAll(FloatList c) {
@@ -90,7 +93,7 @@ public class FloatList {
 		size += len;
 	}
 
-	public void insert(int index, float value) {
+	public void add(int index, float value) {
 		if (index < 0 || index > size)
 			throw new IndexOutOfBoundsException("Index:" + index + " size:"
 					+ size);
@@ -101,7 +104,7 @@ public class FloatList {
 		++size;
 	}
 
-	public void insert(int index, Collection<Float> c) {
+	public void add(int index, Collection<Float> c) {
 		if (index < 0 || index > size)
 			throw new IndexOutOfBoundsException("Index:" + index + " size:"
 					+ size);
@@ -114,7 +117,7 @@ public class FloatList {
 		size += c.size();
 	}
 
-	public void insert(int index, FloatList c) {
+	public void add(int index, FloatList c) {
 		if (index < 0 || index > size)
 			throw new IndexOutOfBoundsException("Index:" + index + " size:"
 					+ size);
@@ -125,11 +128,11 @@ public class FloatList {
 		size += c.size();
 	}
 
-	public void insert(int index, byte[] values) {
-		insert(index, values, 0, values.length);
+	public void add(int index, float[] values) {
+		add(index, values, 0, values.length);
 	}
 
-	public void insert(int index, byte[] values, int value_begin, int len) {
+	public void add(int index, float[] values, int value_begin, int len) {
 		if (index < 0 || index > size || value_begin < 0 || len < 0
 				|| value_begin + len > values.length)
 			throw new IllegalArgumentException();
@@ -150,12 +153,12 @@ public class FloatList {
 		return ret;
 	}
 
-	public void remove(int index, int len) {
-		if (index < 0 || len < 0 || index + len > size)
+	public void removeRange(int from, int to) {
+        if (from < 0 || from > to || to > size)
 			throw new IllegalArgumentException();
 
-		System.arraycopy(buffer, index + len, buffer, index, size - index - len);
-		size -= len;
+		System.arraycopy(buffer, to, buffer, from, size - to);
+		size -= to - from;
 	}
 
 	public boolean removeAll(float value) {
@@ -243,7 +246,7 @@ public class FloatList {
 	}
 
 	/**
-	 * 没有找到则返�?-1
+	 * 没有找到则返�?-1
 	 */
 	public int indexOf(float v) {
 		return indexOf(v, 0);

@@ -298,4 +298,11 @@ public class ArrayDeque<E> extends AbstractList<E>
 	public int size() {
 		return (end + buffer.length - begin) % buffer.length;
 	}
+
+	@Override
+	public ArrayDeque<E> clone() {
+		ArrayDeque<E> ret = new ArrayDeque<E>(size());
+		ret.addAll(this);
+		return ret;
+	}
 };
