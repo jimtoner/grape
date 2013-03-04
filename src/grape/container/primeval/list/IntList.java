@@ -1,4 +1,4 @@
-package grape.container.list;
+package grape.container.primeval.list;
 
 import java.util.Collection;
 
@@ -243,7 +243,7 @@ public class IntList {
 	}
 
 	/**
-	 * 没有找到则返�?-1
+	 * 没有找到则返�?-1
 	 */
 	public int indexOf(int v) {
 		return indexOf(v, 0);

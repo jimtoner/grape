@@ -1,48 +1,48 @@
-package grape.container.list;
+package grape.container.primeval.list;
 
 import java.util.Collection;
 
-public class FloatList {
+public class DoubleList {
 
 	private static final int DEFAULT_INITICAL_CAPACITY = 16;
 
 	private int size;
-	private float[] buffer;
+	private double[] buffer;
 
-	public FloatList() {
+	public DoubleList() {
 		this(DEFAULT_INITICAL_CAPACITY);
 	}
 
-	public FloatList(int initialCapacity) {
+	public DoubleList(int initialCapacity) {
 		if (initialCapacity <= 0)
 			throw new IllegalArgumentException("Illegal capacity:"
 					+ initialCapacity);
-		buffer = new float[initialCapacity];
+		buffer = new double[initialCapacity];
 		size = 0;
 	}
 
-	public FloatList(Collection<Float> c) {
-		buffer = new float[c.size()];
+	public DoubleList(Collection<Double> c) {
+		buffer = new double[c.size()];
 		size = 0;
-		for (Float s : c)
+		for (Double s : c)
 			buffer[size++] = s;
 	}
 
-	public FloatList(FloatList c) {
-		buffer = new float[c.size];
+	public DoubleList(DoubleList c) {
+		buffer = new double[c.size];
 		System.arraycopy(c.buffer, 0, buffer, 0, c.size);
 		size = c.size;
 	}
 
-	public FloatList(float[] values) {
+	public DoubleList(double[] values) {
 		this(values, 0, values.length);
 	}
 
-    public FloatList(float[] values, int value_begin, int len) {
+    public DoubleList(double[] values, int value_begin, int len) {
 		if (value_begin < 0 || len < 0 || value_begin + len > values.length)
 			throw new IllegalArgumentException();
 
-		buffer = new float[len];
+		buffer = new double[len];
 		System.arraycopy(values, value_begin, buffer, 0, len);
 		size = len;
 	}
@@ -55,33 +55,33 @@ public class FloatList {
 		if (new_cap < new_size)
 			new_cap = new_size;
 
-		float[] new_buf = new float[new_cap];
+		double[] new_buf = new double[new_cap];
 		System.arraycopy(buffer, 0, new_buf, 0, size);
 		buffer = new_buf;
 	}
 
-	public void add(float v) {
+	public void add(double v) {
 		ensureCap(size + 1);
 		buffer[size++] = v;
 	}
 
-	public void addAll(Collection<Float> c) {
-		for (Float s : c) {
+	public void addAll(Collection<Double> c) {
+		for (Double s : c) {
 			add(s);
 		}
 	}
 
-	public void addAll(FloatList c) {
+	public void addAll(DoubleList c) {
 		ensureCap(size + c.size);
 		System.arraycopy(c.buffer, 0, buffer, size, c.size);
 		size += c.size;
 	}
 
-	public void addAll(float[] values) {
+	public void addAll(double[] values) {
 		addAll(values, 0, values.length);
 	}
 
-	public void addAll(float[] values, int value_begin, int len) {
+	public void addAll(double[] values, int value_begin, int len) {
 		if (value_begin < 0 || len < 0 || value_begin + len > values.length)
 			throw new IllegalArgumentException();
 
@@ -90,7 +90,7 @@ public class FloatList {
 		size += len;
 	}
 
-	public void insert(int index, float value) {
+	public void insert(int index, double value) {
 		if (index < 0 || index > size)
 			throw new IndexOutOfBoundsException("Index:" + index + " size:"
 					+ size);
@@ -101,20 +101,20 @@ public class FloatList {
 		++size;
 	}
 
-	public void insert(int index, Collection<Float> c) {
+	public void insert(int index, Collection<Double> c) {
 		if (index < 0 || index > size)
 			throw new IndexOutOfBoundsException("Index:" + index + " size:"
 					+ size);
 
 		ensureCap(size + c.size());
 		System.arraycopy(buffer, index, buffer, index + c.size(), size - index);
-		for (Float s : c) {
+		for (Double s : c) {
 			buffer[index++] = s;
 		}
 		size += c.size();
 	}
 
-	public void insert(int index, FloatList c) {
+	public void insert(int index, DoubleList c) {
 		if (index < 0 || index > size)
 			throw new IndexOutOfBoundsException("Index:" + index + " size:"
 					+ size);
@@ -140,11 +140,11 @@ public class FloatList {
 		size += len;
 	}
 
-	public float remove(int index) {
+	public double remove(int index) {
 		if (index < 0 || index >= size)
 			throw new IndexOutOfBoundsException();
 
-		float ret = buffer[index];
+		double ret = buffer[index];
 		System.arraycopy(buffer, index + 1, buffer, index, size - index - 1);
 		--size;
 		return ret;
@@ -158,7 +158,7 @@ public class FloatList {
 		size -= len;
 	}
 
-	public boolean removeAll(float value) {
+	public boolean removeAll(double value) {
 		int new_size = 0;
 		for (int i = 0; i < size; ++i) {
 			if (buffer[i] != value) {
@@ -170,25 +170,25 @@ public class FloatList {
 		return changed;
 	}
 
-	public boolean removeAll(Collection<Float> c) {
+	public boolean removeAll(Collection<Double> c) {
 		int old_size = size;
-		for (Float s : c)
+		for (Double s : c)
 			removeAll(s);
 		return old_size != size;
 	}
 
-	public boolean removeAll(FloatList c) {
+	public boolean removeAll(DoubleList c) {
 		int old_size = size;
 		for (int i = 0; i < c.size; ++i)
 			removeAll(c.buffer[i]);
 		return old_size != size;
 	}
 
-	public boolean removeAll(float[] values) {
+	public boolean removeAll(double[] values) {
 		return removeAll(values, 0, values.length);
 	}
 
-	public boolean removeAll(float[] values, int value_begin, int len) {
+	public boolean removeAll(double[] values, int value_begin, int len) {
 		if (value_begin < 0 || len < 0 || value_begin + len > values.length)
 			throw new IllegalArgumentException();
 
@@ -198,7 +198,7 @@ public class FloatList {
 		return old_size != size;
 	}
 
-	public boolean retainAll(Collection<Float> c) {
+	public boolean retainAll(Collection<Double> c) {
 		int new_size = 0;
 		for (int i = 0; i < size; ++i) {
 			if (c.contains(buffer[i])) {
@@ -210,7 +210,7 @@ public class FloatList {
 		return changed;
 	}
 
-	public boolean retainAll(FloatList c) {
+	public boolean retainAll(DoubleList c) {
 		int new_size = 0;
 		for (int i = 0; i < size; ++i) {
 			if (c.contains(buffer[i])) {
@@ -226,30 +226,30 @@ public class FloatList {
 		size = 0;
 	}
 
-	public float get(int index) {
+	public double get(int index) {
 		if (index < 0 || index >= size)
 			throw new IndexOutOfBoundsException();
 
 		return buffer[index];
 	}
 
-	public float set(int index, float value) {
+	public double set(int index, double value) {
 		if (index < 0 || index >= size)
 			throw new IndexOutOfBoundsException();
 
-		float ret = buffer[index];
+		double ret = buffer[index];
 		buffer[index] = value;
 		return ret;
 	}
 
 	/**
-	 * 没有找到则返�?-1
+	 * 没有找到则返�?-1
 	 */
-	public int indexOf(float v) {
+	public int indexOf(double v) {
 		return indexOf(v, 0);
 	}
 
-	public int indexOf(float v, int search_begin) {
+	public int indexOf(double v, int search_begin) {
 		if (search_begin < 0 || search_begin > size)
 			throw new IndexOutOfBoundsException();
 		for (int i = search_begin; i < size; ++i)
@@ -258,11 +258,11 @@ public class FloatList {
 		return -1;
 	}
 
-	public int lastIndexOf(float v) {
+	public int lastIndexOf(double v) {
 		return lastIndexOf(v, size - 1);
 	}
 
-	public int lastIndexOf(float v, int search_begin) {
+	public int lastIndexOf(double v, int search_begin) {
 		if (search_begin < -1 || search_begin >= size)
 			throw new IndexOutOfBoundsException();
 		for (int i = search_begin; i >= 0; --i)
@@ -271,32 +271,32 @@ public class FloatList {
 		return -1;
 	}
 
-	public boolean contains(float v) {
+	public boolean contains(double v) {
 		for (int i = 0; i < size; ++i)
 			if (buffer[i] == v)
 				return true;
 		return false;
 	}
 
-	public boolean contailsAll(Collection<Float> c) {
-		for (Float s : c)
+	public boolean contailsAll(Collection<Double> c) {
+		for (Double s : c)
 			if (!contains(s))
 				return false;
 		return true;
 	}
 
-	public boolean containsAll(FloatList c) {
+	public boolean containsAll(DoubleList c) {
 		for (int i = 0; i < c.size; ++i)
 			if (!contains(c.buffer[i]))
 				return false;
 		return true;
 	}
 
-	public boolean conatainsAll(float[] values) {
+	public boolean conatainsAll(double[] values) {
 		return containsAll(values, 0, values.length);
 	}
 
-	public boolean containsAll(float[] values, int value_begin, int len) {
+	public boolean containsAll(double[] values, int value_begin, int len) {
 		if (value_begin < 0 || len < 0 || value_begin + len > values.length)
 			throw new IllegalArgumentException();
 
@@ -306,11 +306,11 @@ public class FloatList {
 		return true;
 	}
 
-	public FloatList subList(int begin, int len) {
+	public DoubleList subList(int begin, int len) {
 		if (begin < 0 || len < 0 || begin + len > size)
 			throw new IllegalArgumentException();
 
-		return new FloatList(buffer, begin, len);
+		return new DoubleList(buffer, begin, len);
 	}
 
 	public int size() {
@@ -321,31 +321,31 @@ public class FloatList {
 		return size == 0;
 	}
 
-	public float[] toArray() {
-		float[] ret = new float[size];
+	public double[] toArray() {
+		double[] ret = new double[size];
 		System.arraycopy(buffer, 0, ret, 0, size);
 		return ret;
 	}
 
-	public void toArray(float[] arr, int begin) {
+	public void toArray(double[] arr, int begin) {
 		if (begin < 0 || begin + size > arr.length)
 			throw new IllegalArgumentException();
 		System.arraycopy(buffer, 0, arr, begin, size);
 	}
 
 	@Override
-	public FloatList clone() {
-		return new FloatList(buffer, 0, size);
+	public DoubleList clone() {
+		return new DoubleList(buffer, 0, size);
 	}
 
 	@Override
 	public boolean equals(Object o) {
 		if (this == o)
 			return true;
-		if (!(o instanceof FloatList))
+		if (!(o instanceof DoubleList))
 			return false;
 
-		FloatList x = (FloatList) o;
+		DoubleList x = (DoubleList) o;
 		if (x.size != size)
 			return false;
 		for (int i = 0; i < size; ++i)
@@ -359,7 +359,8 @@ public class FloatList {
 		int hash = 0;
 
 		for (int i = 0; i < size; ++i) {
-                hash = (31 * hash) + Float.floatToIntBits(buffer[i]);
+                long bits = Double.doubleToLongBits(buffer[i]);
+                hash = (31 * hash) + (int)(bits ^ (bits >>> 32));
         }
 		return hash;
 	}
@@ -371,7 +372,7 @@ public class FloatList {
 		for (int i = 0; i < size; ++i) {
 			if (i != 0)
 				sb.append(", ");
-			sb.append(Float.toString(buffer[i]));
+			sb.append(Double.toString(buffer[i]));
 		}
 		sb.append(']');
 		return sb.toString();

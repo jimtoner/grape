@@ -1,24 +1,24 @@
-package grape.container.stack;
+package grape.container.primeval.stack;
 
 /**
  * 浮点数栈
  */
-public class FloatStack {
+public class CharStack {
 
 	private static final int DEFAULT_INITICAL_CAPACITY = 16;
 
 	private int size;
-	private float[] buffer;
+	private char[] buffer;
 
-	public FloatStack() {
+	public CharStack() {
 		this(DEFAULT_INITICAL_CAPACITY);
 	}
 
-	public FloatStack(int initialCapacity) {
+	public CharStack(int initialCapacity) {
 		if (initialCapacity <= 0)
 			throw new IllegalArgumentException("Illegal capacity:"
 					+ initialCapacity);
-		buffer = new float[initialCapacity];
+		buffer = new char[initialCapacity];
 		size = 0;
 	}
 
@@ -30,17 +30,17 @@ public class FloatStack {
 		if (new_cap < new_size)
 			new_cap = new_size;
 
-		float[] new_buf = new float[new_cap];
+		char[] new_buf = new char[new_cap];
 		System.arraycopy(buffer, 0, new_buf, 0, size);
 		buffer = new_buf;
 	}
 
-	public void push(float v) {
+	public void push(char v) {
 		ensureCap(size + 1);
 		buffer[size++] = v;
 	}
 
-	public float pop() {
+	public char pop() {
 		if (size <= 0)
 			throw new IndexOutOfBoundsException("Empty stack");
 
@@ -50,7 +50,7 @@ public class FloatStack {
 	/**
 	 * 相当于 get(-1) 或者 get(size() - 1)
 	 */
-	public float top() {
+	public char top() {
 		if (size <= 0)
 			throw new IndexOutOfBoundsException("Empty stack");
 		return buffer[size - 1];
@@ -59,7 +59,7 @@ public class FloatStack {
 	/**
 	 * 正索引[0,size)，栈底为0，栈顶为size-1 负索引[-size, -1]，栈底为-size，栈顶为-1
 	 */
-	public float get(int index) {
+	public char get(int index) {
 		if (index < -size || index >= size)
 			throw new IndexOutOfBoundsException("Illegal index " + index
 					+ " with size " + size);
@@ -79,10 +79,10 @@ public class FloatStack {
 
 	@Override
 	public boolean equals(Object o) {
-		if (!(o instanceof FloatStack))
+		if (!(o instanceof CharStack))
 			return false;
 
-		FloatStack ds = (FloatStack) o;
+		CharStack ds = (CharStack) o;
 		if (ds.size != size)
 			return false;
 		for (int i = 0; i < size; ++i)
@@ -95,15 +95,14 @@ public class FloatStack {
 	public int hashCode() {
 		int h = 0;
 		for (int i = 0; i < size; ++i) {
-                long v = Float.floatToIntBits(buffer[i]);
-                h = (h >>> 1) ^ (int) (v ^ (v >>> 32));
+                h = h * 31 + buffer[i];
 		}
 		return h;
 	}
 
 	@Override
-	public FloatStack clone() {
-		FloatStack ret = new FloatStack(size);
+	public CharStack clone() {
+		CharStack ret = new CharStack(size);
 		System.arraycopy(buffer, 0, ret.buffer, 0, size);
 		ret.size = size;
 		return ret;
@@ -116,7 +115,7 @@ public class FloatStack {
 		for (int i = 0; i < size; ++i) {
 			if (i != 0)
 				sb.append(", ");
-			sb.append(Float.toString(buffer[i]));
+			sb.append(Character.toString(buffer[i]));
 		}
 		sb.append(']');
 		return sb.toString();
