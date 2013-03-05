@@ -3,13 +3,12 @@ package grape.container;
 import java.io.Serializable;
 import java.util.*;
 
-import com.sun.jmx.remote.internal.ArrayQueue;
 
 /**
- * 实现逻辑类似于 {@link ArrayQueue}，但存储空间动态分配
+ * {@link ArrayList}、{@link ArrayDeque} 的综合体
  */
-public class ArrayDeque<E> extends AbstractList<E>
-		implements List<E>, RandomAccess, Cloneable, Serializable {
+public class ArrayDequeList<E> extends AbstractDequeList<E>
+		implements List<E>, Deque<E>, RandomAccess, Cloneable, Serializable {
 
 	private static final long serialVersionUID = -5299717963451646695L;
 
@@ -17,18 +16,18 @@ public class ArrayDeque<E> extends AbstractList<E>
 	private Object[] buffer;
 	private int begin = 0, end = 0;
 
-	public ArrayDeque() {
+	public ArrayDequeList() {
 		this(10);
 	}
 
-	public ArrayDeque(int initialCapacity) {
+	public ArrayDequeList(int initialCapacity) {
 		super();
 		if (initialCapacity < 0)
 			throw new IllegalArgumentException("Illegal Capacity: " + initialCapacity);
 		buffer = new Object[initialCapacity + 1];
 	}
 
-	public ArrayDeque(Collection<? extends E> c) {
+	public ArrayDequeList(Collection<? extends E> c) {
 		this(c.size());
 		for (E e : c)
 			add(e);
@@ -64,14 +63,6 @@ public class ArrayDeque<E> extends AbstractList<E>
 		E ret = (E) buffer[i];
 		buffer[i] = e;
 		return ret;
-	}
-
-	public void addFirst(E e) {
-		add(0, e);
-	}
-
-	public void addLast(E e) {
-		add(size(), e);
 	}
 
 	@Override
@@ -141,6 +132,8 @@ public class ArrayDeque<E> extends AbstractList<E>
 		int size = size();
 		if (index < 0 || index > size)
 			throw new IndexOutOfBoundsException("index: " + index + ", size: " + size);
+		if (c == this)
+			throw new IllegalArgumentException();
 		if (c.size() == 0)
 			return false;
 
@@ -252,7 +245,7 @@ public class ArrayDeque<E> extends AbstractList<E>
 	}
 
 	@Override
-	protected void removeRange(int from, int to) {
+	public void removeRange(int from, int to) {
 		int size = size();
 		if (from < 0 || from > to || to > size)
 			throw new IndexOutOfBoundsException("from: " + from + ", to: " + to + ", size: " + size);
@@ -300,8 +293,8 @@ public class ArrayDeque<E> extends AbstractList<E>
 	}
 
 	@Override
-	public ArrayDeque<E> clone() {
-		ArrayDeque<E> ret = new ArrayDeque<E>(size());
+	public ArrayDequeList<E> clone() {
+		ArrayDequeList<E> ret = new ArrayDequeList<E>(size());
 		ret.addAll(this);
 		return ret;
 	}
