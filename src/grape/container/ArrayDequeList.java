@@ -8,7 +8,7 @@ import java.util.*;
  * {@link ArrayList}、{@link ArrayDeque} 的综合体
  */
 public class ArrayDequeList<E> extends AbstractDequeList<E>
-		implements List<E>, Deque<E>, RandomAccess, Cloneable, Serializable {
+		implements DequeList<E>, RandomAccess, Cloneable, Serializable {
 
 	private static final long serialVersionUID = -5299717963451646695L;
 

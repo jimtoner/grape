@@ -3,7 +3,7 @@ package grape.container;
 import java.util.*;
 
 public abstract class AbstractDequeList<E> extends AbstractList<E>
-	implements Deque<E>, List<E> {
+	implements DequeList<E> {
 
 	protected AbstractDequeList() {}
 
