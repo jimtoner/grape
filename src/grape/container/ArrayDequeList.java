@@ -85,7 +85,7 @@ public class ArrayDequeList<E> extends AbstractDequeList<E>
 				}
 
 				// 插入数据，更改游标位置
-				buffer[src] = e;
+				buffer[dst] = e;
 				begin = (begin + buffer.length - 1) % buffer.length;
 			} else {
 				// 右半部分右移一个位置
@@ -99,7 +99,7 @@ public class ArrayDequeList<E> extends AbstractDequeList<E>
 				}
 
 				// 插入数据，更改游标位置
-				buffer[src] = e;
+				buffer[dst] = e;
 				end = (end + 1) % buffer.length;
 			}
 		} else {
@@ -115,8 +115,8 @@ public class ArrayDequeList<E> extends AbstractDequeList<E>
 
 			// 复制右半部分
 			src = (begin + index) % buffer.length;
-			for (int i = index; i < size; ++i) {
-				newBuffer[i + 1] = buffer[src];
+			for (int i = index + 1; i <= size; ++i) {
+				newBuffer[i] = buffer[src];
 				src = (src + 1) % buffer.length;
 			}
 
