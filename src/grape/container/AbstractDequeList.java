@@ -2,6 +2,13 @@ package grape.container;
 
 import java.util.*;
 
+/**
+ * Base for DequeList
+ *
+ * @author jingqi
+ *
+ * @param <E>
+ */
 public abstract class AbstractDequeList<E> extends AbstractList<E>
 	implements DequeList<E> {
 

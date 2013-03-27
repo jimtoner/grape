@@ -8,8 +8,8 @@ import java.util.Map;
  *
  * @author jingqi
  *
- * @param <K>
- * @param <V>
+ * @param <K> Key type
+ * @param <V> Value type
  */
 public class MRUCache <K,V> {
 

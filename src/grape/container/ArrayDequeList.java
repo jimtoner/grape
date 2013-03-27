@@ -50,7 +50,10 @@ public class ArrayDequeList<E> extends AbstractDequeList<E>
 		if (index < 0 || index >= size())
 			throw new IndexOutOfBoundsException("index: " + index + ", size: " + size());
 
-		return (E) buffer[(begin + index) % buffer.length];
+		int i = begin + index;
+		if (i >= buffer.length)
+			i -= buffer.length;
+		return (E) buffer[i];
 	}
 
 	@SuppressWarnings("unchecked")
@@ -59,7 +62,9 @@ public class ArrayDequeList<E> extends AbstractDequeList<E>
 		if (index < 0 || index >= size())
 			throw new IndexOutOfBoundsException("index: " + index + ", size: " + size());
 
-		int i = (begin + index) % buffer.length;
+		int i = begin + index;
+		if (i >= buffer.length)
+			i -= buffer.length;
 		E ret = (E) buffer[i];
 		buffer[i] = e;
 		return ret;
@@ -76,48 +81,72 @@ public class ArrayDequeList<E> extends AbstractDequeList<E>
 			if (index < size - index) {
 				// 左半部分左移一个位置
 				int src = begin;
-				int dst = (begin + buffer.length - 1) % buffer.length;
+				int dst = begin - 1;
+				if (dst < 0)
+					dst += buffer.length;
 				for (int i = 0; i < index; ++i) {
 					buffer[dst] = buffer[src];
 
-					src = (src + 1) % buffer.length;
-					dst = (dst + 1) % buffer.length;
+					++src;
+					if (src == buffer.length)
+						src = 0;
+					++dst;
+					if (dst == buffer.length)
+						dst = 0;
 				}
 
 				// 插入数据，更改游标位置
 				buffer[dst] = e;
-				begin = (begin + buffer.length - 1) % buffer.length;
+				--begin;
+				if (begin < 0)
+					begin += buffer.length;
 			} else {
 				// 右半部分右移一个位置
-				int src = (end + buffer.length - 1) % buffer.length;
+				int src = end - 1;
+				if (src < 0)
+					src += buffer.length;
 				int dst = end;
 				for (int i = size - index; i > 0; --i) {
 					buffer[dst] = buffer[src];
 
-					src = (src + buffer.length - 1) % buffer.length;
-					dst = (dst + buffer.length - 1) % buffer.length;
+					--src;
+					if (src < 0)
+						src += buffer.length;
+					--dst;
+					if (dst < 0)
+						dst += buffer.length;
 				}
 
 				// 插入数据，更改游标位置
 				buffer[dst] = e;
-				end = (end + 1) % buffer.length;
+				++end;
+				if (end == buffer.length)
+					end = 0;
 			}
 		} else {
 			// 复制左半部分
 			int src = begin;
 			for (int i = 0; i < index; ++i) {
 				newBuffer[i] = buffer[src];
-				src = (src + 1) % buffer.length;
+
+				++src;
+				if (src == buffer.length)
+					src = 0;
 			}
 
 			// 插入元素
 			newBuffer[index] = e;
 
 			// 复制右半部分
-			src = (begin + index) % buffer.length;
+			src = begin + index;
+			if (src >= buffer.length)
+				src -= buffer.length;
 			for (int i = index + 1; i <= size; ++i) {
 				newBuffer[i] = buffer[src];
-				src = (src + 1) % buffer.length;
+
+				++src;
+				if (src == buffer.length)
+					src = 0;
 			}
 
 			begin = 0;
@@ -142,11 +171,15 @@ public class ArrayDequeList<E> extends AbstractDequeList<E>
 			if (index < size - index) {
 				// 左半部分左移
 				int src = begin;
-				int dst = (begin + buffer.length - c.size()) % buffer.length;
+				int dst = begin - c.size();
+				if (dst < 0)
+					dst += buffer.length;
 				for (int i = 0; i < index; ++i) {
 					buffer[dst] = buffer[src];
 
-					src = (src + 1) % buffer.length;
+					++src;
+					if (src == buffer.length)
+						src = 0;
 					dst = (dst + 1) % buffer.length;
 				}
 
@@ -300,7 +333,10 @@ public class ArrayDequeList<E> extends AbstractDequeList<E>
 
 	@Override
 	public int size() {
-		return (end + buffer.length - begin) % buffer.length;
+		int ret = end - begin;
+		if (ret < 0)
+			ret += buffer.length;
+		return ret;
 	}
 
 	@Override
