@@ -101,7 +101,7 @@ public class RangeList {
 		int left = getLeft(lastPair);
 		int right = getRight(lastPair);
 		if (first <= right)
-			throw new IllegalArgumentException("you should call add() to add this row");
+			throw new IllegalArgumentException("you should call add() to add this value");
 
 		if (first == right + 1)
 			pairList.set(pairList.size() - 1, makePair(left, last));
@@ -492,16 +492,16 @@ public class RangeList {
 	public Iterator<Integer> iterator() {
 		return new Iterator<Integer>() {
 
-			int currentRow;
+			int currentValue;
 			int nextPairIndex, secondOfPair;
-			int nextRow;
+			int nextValue;
 
 			{
-				currentRow = -1;
+				currentValue = -1;
 				nextPairIndex = 0;
 				if (nextPairIndex < RangeList.this.pairList.size()) {
 					long pair = RangeList.this.pairList.get(nextPairIndex);
-					nextRow = RangeList.getLeft(pair);
+					nextValue = RangeList.getLeft(pair);
 					secondOfPair = RangeList.getRight(pair);
 				}
 			}
@@ -516,19 +516,19 @@ public class RangeList {
 				if (!hasNext())
 					throw new IllegalStateException("There is NO next step!");
 
-				currentRow = nextRow;
+				currentValue = nextValue;
 
-				++nextRow;
-				if (nextRow > secondOfPair) {
+				++nextValue;
+				if (nextValue > secondOfPair) {
 					++nextPairIndex;
 					if (nextPairIndex < RangeList.this.pairList.size()) {
 						long pair = RangeList.this.pairList.get(nextPairIndex);
-						nextRow = RangeList.getLeft(pair);
+						nextValue = RangeList.getLeft(pair);
 						secondOfPair = RangeList.getRight(pair);
 					}
 				}
 
-				return currentRow;
+				return currentValue;
 			}
 
 			@Override
@@ -541,7 +541,7 @@ public class RangeList {
 	/**
 	 * 迭代指定区间的数据
 	 */
-	public Iterator<Integer> iterator(final int firstRow, final int lastRow) {
+	public Iterator<Integer> iterator(final int firstValue, final int lastValue) {
 		// 用二分法找到迭代的起点
 		int left = -1, right = pairList.size();
 		while (left + 1 < right) {
@@ -549,9 +549,9 @@ public class RangeList {
 			long middlePair = pairList.get(middle);
 			int first = getLeft(middlePair);
 			int second = getRight(middlePair);
-			if (firstRow < first) {
+			if (firstValue < first) {
 				right = middle;
-			} else if (firstRow > second) {
+			} else if (firstValue > second) {
 				left = middle;
 			} else {
 				right = middle;
@@ -563,25 +563,25 @@ public class RangeList {
 		// 生成迭代器
 		return new Iterator<Integer>() {
 
-			int currentRow;
+			int currentValue;
 			int nextPairIndex, secondOfPair;
-			int nextRow;
+			int nextValue;
 
 			{
-				currentRow = -1;
-				nextRow = lastRow + 1;
+				currentValue = -1;
+				nextValue = lastValue + 1;
 				nextPairIndex = startPairIndex;
 				if (nextPairIndex < RangeList.this.pairList.size()) {
 					long pair = RangeList.this.pairList.get(nextPairIndex);
 					int firstOfpair = RangeList.getLeft(pair);
 					secondOfPair = RangeList.getRight(pair);
-					nextRow = Math.max(firstOfpair, firstRow);
+					nextValue = Math.max(firstOfpair, firstValue);
 				}
 			}
 
 			@Override
 			public boolean hasNext() {
-				return nextRow <= lastRow;
+				return nextValue <= lastValue;
 			}
 
 			@Override
@@ -589,20 +589,20 @@ public class RangeList {
 				if (!hasNext())
 					throw new IllegalStateException("There is NO next step!");
 
-				currentRow = nextRow;
-				++nextRow;
-				if (nextRow > secondOfPair) {
+				currentValue = nextValue;
+				++nextValue;
+				if (nextValue > secondOfPair) {
 					++nextPairIndex;
-					nextRow = lastRow + 1;
+					nextValue = lastValue + 1;
 					if (nextPairIndex < RangeList.this.pairList.size()) {
 						long pair = RangeList.this.pairList.get(nextPairIndex);
 						int firstOfpair = RangeList.getLeft(pair);
 						secondOfPair = RangeList.getRight(pair);
-						nextRow = firstOfpair;
+						nextValue = firstOfpair;
 					}
 				}
 
-				return currentRow;
+				return currentValue;
 			}
 
 			@Override
@@ -615,7 +615,7 @@ public class RangeList {
 	/**
 	 * 迭代指定区间中不在本容器中的空隙
 	 */
-	public Iterator<Integer> vacuum_iterator(final int firstRow, final int lastRow) {
+	public Iterator<Integer> vacuum_iterator(final int firstValue, final int lastValue) {
 		// 二插查找法找到迭代起点
 		int left = -1, right = pairList.size();
 		while (left + 1 < right) {
@@ -623,9 +623,9 @@ public class RangeList {
 			long pair = pairList.get(middle);
 			int first = getLeft(pair);
 			int second = getRight(pair);
-			if (firstRow < first) {
+			if (firstValue < first) {
 				right = middle;
-			} else if (firstRow > second) {
+			} else if (firstValue > second) {
 				left = middle;
 			} else {
 				right = middle + 1;
@@ -637,24 +637,24 @@ public class RangeList {
 		// 生成迭代器
 		return new Iterator<Integer>() {
 
-			int currentRow;
-			int nextRow;
+			int currentValue;
+			int nextValue;
 			int rightBoundPairIndex, rightBound, nextStart;
 
 			{
-				currentRow = -1;
-				nextRow = lastRow + 1;
+				currentValue = -1;
+				nextValue = lastValue + 1;
 				rightBoundPairIndex = startPairIndex;
 				if (rightBoundPairIndex - 1 >= 0) {
 					long pair = RangeList.this.pairList.get(rightBoundPairIndex - 1);
 					int second = getRight(pair);
-					nextRow = Math.max(second + 1, firstRow);
+					nextValue = Math.max(second + 1, firstValue);
 				} else {
-					nextRow = firstRow;
+					nextValue = firstValue;
 				}
 
-				rightBound = lastRow + 1;
-				nextStart = lastRow + 1;
+				rightBound = lastValue + 1;
+				nextStart = lastValue + 1;
 				if (rightBoundPairIndex < RangeList.this.pairList.size()) {
 					long pair = RangeList.this.pairList.get(rightBoundPairIndex);
 					rightBound = getLeft(pair);
@@ -664,7 +664,7 @@ public class RangeList {
 
 			@Override
 			public boolean hasNext() {
-				return nextRow <= lastRow;
+				return nextValue <= lastValue;
 			}
 
 			@Override
@@ -672,14 +672,14 @@ public class RangeList {
 				if (!hasNext())
 					throw new IllegalStateException("There is No next step!");
 
-				currentRow = nextRow;
+				currentValue = nextValue;
 
-				++nextRow;
-				if (nextRow >= rightBound) {
-					nextRow = nextStart + 1;
+				++nextValue;
+				if (nextValue >= rightBound) {
+					nextValue = nextStart + 1;
 					++rightBoundPairIndex;
-					rightBound = lastRow + 1;
-					nextStart = lastRow + 1;
+					rightBound = lastValue + 1;
+					nextStart = lastValue + 1;
 					if (rightBoundPairIndex < RangeList.this.pairList.size()) {
 						long pair = RangeList.this.pairList.get(rightBoundPairIndex);
 						rightBound = getLeft(pair);
@@ -687,7 +687,7 @@ public class RangeList {
 					}
 				}
 
-				return currentRow;
+				return currentValue;
 			}
 
 			@Override
