@@ -1,13 +1,13 @@
 package grape.container.indexmap;
 
 /**
- * 管理 [0, maxIndex) 范围内的整数映射
+ * 管理 [0, maxIndex) 范围内的<b>稀疏索引</b>映射
  *
  * 支持快速的顺序迭代其中的值
  *
  * @author jingqi
  */
-public class IndexMap <T> implements Iterable<T> {
+public class SparseIndexMap <T> implements Iterable<T> {
 
 	protected final int BLOCK_SHIFT;
 	protected final int BLOCK_MASK;
@@ -21,7 +21,7 @@ public class IndexMap <T> implements Iterable<T> {
 	/**
 	 * @param maxIndex 设置了之后，index取值范围只能在 [0, maxIndex) 区间内(左闭右开区间)
 	 */
-	public IndexMap(int maxIndex) {
+	public SparseIndexMap(int maxIndex) {
 		int bitLength = 32 - Integer.numberOfLeadingZeros(maxIndex - 1);
 		BLOCK_SHIFT = bitLength / 2;
 		BLOCK_MASK = ~((~0) << BLOCK_SHIFT);

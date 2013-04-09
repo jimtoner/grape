@@ -4,13 +4,13 @@ import java.util.Iterator;
 
 public class IndexMapIterator <T> implements Iterator<T> {
 
-	final IndexMap<T> map;
+	final SparseIndexMap<T> map;
 	final int last;
 
 	int nextIndex;
 	int currentIndex = -1;
 
-	public IndexMapIterator(IndexMap<T> map, int first, int last) {
+	public IndexMapIterator(SparseIndexMap<T> map, int first, int last) {
 		this.map = map;
 		this.last = last;
 
