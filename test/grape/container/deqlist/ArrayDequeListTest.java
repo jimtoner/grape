@@ -1,6 +1,8 @@
-package grape.container;
+package grape.container.deqlist;
 
 import static org.junit.Assert.assertEquals;
+import grape.container.deqlist.ArrayDequeList;
+import grape.container.deqlist.DequeList;
 
 import org.junit.Test;
 
