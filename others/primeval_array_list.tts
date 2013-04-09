@@ -5,7 +5,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.RandomAccess;
 
-public class ${PREFIX}List implements RandomAccess, Cloneable, Serializable {
+public class ${PREFIX}ArrayList implements RandomAccess, Cloneable, Serializable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -14,11 +14,11 @@ public class ${PREFIX}List implements RandomAccess, Cloneable, Serializable {
 	private int size;
 	private ${NATIVE}[] buffer;
 
-	public ${PREFIX}List() {
+	public ${PREFIX}ArrayList() {
 		this(DEFAULT_INITICAL_CAPACITY);
 	}
 
-	public ${PREFIX}List(int initialCapacity) {
+	public ${PREFIX}ArrayList(int initialCapacity) {
 		if (initialCapacity <= 0)
 			throw new IllegalArgumentException("Illegal capacity:"
 					+ initialCapacity);
@@ -26,24 +26,24 @@ public class ${PREFIX}List implements RandomAccess, Cloneable, Serializable {
 		size = 0;
 	}
 
-	public ${PREFIX}List(Collection<${WRAPPER}> c) {
+	public ${PREFIX}ArrayList(Collection<${WRAPPER}> c) {
 		buffer = new ${NATIVE}[c.size()];
 		size = 0;
 		for (${WRAPPER} s : c)
 			buffer[size++] = s;
 	}
 
-	public ${PREFIX}List(${PREFIX}List c) {
+	public ${PREFIX}ArrayList(${PREFIX}ArrayList c) {
 		buffer = new ${NATIVE}[c.size];
 		System.arraycopy(c.buffer, 0, buffer, 0, c.size);
 		size = c.size;
 	}
 
-	public ${PREFIX}List(${NATIVE}[] values) {
+	public ${PREFIX}ArrayList(${NATIVE}[] values) {
 		this(values, 0, values.length);
 	}
 
-    public ${PREFIX}List(${NATIVE}[] values, int value_begin, int len) {
+    public ${PREFIX}ArrayList(${NATIVE}[] values, int value_begin, int len) {
 		if (value_begin < 0 || len < 0 || value_begin + len > values.length)
 			throw new IllegalArgumentException();
 
@@ -75,7 +75,7 @@ public class ${PREFIX}List implements RandomAccess, Cloneable, Serializable {
 			add(s);
 	}
 
-	public void addAll(${PREFIX}List c) {
+	public void addAll(${PREFIX}ArrayList c) {
 		ensureCap(size + c.size);
 		System.arraycopy(c.buffer, 0, buffer, size, c.size);
 		size += c.size;
@@ -118,7 +118,7 @@ public class ${PREFIX}List implements RandomAccess, Cloneable, Serializable {
 		size += c.size();
 	}
 
-	public void add(int index, ${PREFIX}List c) {
+	public void add(int index, ${PREFIX}ArrayList c) {
 		if (index < 0 || index > size)
 			throw new IndexOutOfBoundsException("Index:" + index + " size:"
 					+ size);
@@ -181,7 +181,7 @@ public class ${PREFIX}List implements RandomAccess, Cloneable, Serializable {
 		return old_size != size;
 	}
 
-	public boolean removeAll(${PREFIX}List c) {
+	public boolean removeAll(${PREFIX}ArrayList c) {
 		int old_size = size;
 		for (int i = 0; i < c.size; ++i)
 			removeAll(c.buffer[i]);
@@ -214,7 +214,7 @@ public class ${PREFIX}List implements RandomAccess, Cloneable, Serializable {
 		return changed;
 	}
 
-	public boolean retainAll(${PREFIX}List c) {
+	public boolean retainAll(${PREFIX}ArrayList c) {
 		int new_size = 0;
 		for (int i = 0; i < size; ++i) {
 			if (c.contains(buffer[i])) {
@@ -289,7 +289,7 @@ public class ${PREFIX}List implements RandomAccess, Cloneable, Serializable {
 		return true;
 	}
 
-	public boolean containsAll(${PREFIX}List c) {
+	public boolean containsAll(${PREFIX}ArrayList c) {
 		for (int i = 0; i < c.size; ++i)
 			if (!contains(c.buffer[i]))
 				return false;
@@ -310,11 +310,11 @@ public class ${PREFIX}List implements RandomAccess, Cloneable, Serializable {
 		return true;
 	}
 
-	public ${PREFIX}List subList(int begin, int len) {
+	public ${PREFIX}ArrayList subList(int begin, int len) {
 		if (begin < 0 || len < 0 || begin + len > size)
 			throw new IllegalArgumentException();
 
-		return new ${PREFIX}List(buffer, begin, len);
+		return new ${PREFIX}ArrayList(buffer, begin, len);
 	}
 
 	public int size() {
@@ -338,18 +338,18 @@ public class ${PREFIX}List implements RandomAccess, Cloneable, Serializable {
 	}
 
 	@Override
-	public ${PREFIX}List clone() {
-		return new ${PREFIX}List(buffer, 0, size);
+	public ${PREFIX}ArrayList clone() {
+		return new ${PREFIX}ArrayList(buffer, 0, size);
 	}
 
 	@Override
 	public boolean equals(Object o) {
 		if (this == o)
 			return true;
-		if (!(o instanceof ${PREFIX}List))
+		if (!(o instanceof ${PREFIX}ArrayList))
 			return false;
 
-		${PREFIX}List x = (${PREFIX}List) o;
+		${PREFIX}ArrayList x = (${PREFIX}ArrayList) o;
 		if (x.size != size)
 			return false;
 		for (int i = 0; i < size; ++i)
@@ -392,21 +392,21 @@ $$          }
 }
 $$} // end of function
 $${
-    output("CharList.java");
+    output("CharArrayList.java");
     body("Char", "Character", "char");
     
-    output("ShortList.java");
+    output("ShortArrayList.java");
     body("Short", "Short", "short");
     
-    output("IntList.java");
+    output("IntArrayList.java");
     body("Int", "Integer", "int");
     
-    output("LongList.java");
+    output("LongArrayList.java");
     body("Long", "Long", "long");
     
-    output("FloatList.java");
+    output("FloatArrayList.java");
     body("Float", "Float", "float");
     
-    output("DoubleList.java");
+    output("DoubleArrayList.java");
     body("Double", "Double", "double");
 }$$
