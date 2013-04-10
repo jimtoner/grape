@@ -454,6 +454,7 @@ public class IndexedRangeList {
 				throw new IllegalStateException("Illegal value of state");
 			}
 		}
+		ret.updateIndex(0);
 		return ret;
 	}
 
@@ -464,7 +465,7 @@ public class IndexedRangeList {
 	public static IndexedRangeList remainder(IndexedRangeList x, IndexedRangeList y) {
 		IndexedRangeList ret = new IndexedRangeList();
 		int index1 = 0, index2 = 0;
-		int state = 0;
+		int state = 0; // 0 for none; 1 for single x; 2 for single y; 3 for x and y
 		int firstOfRemainder = 0;
 		while (index1 / 2 < x.ranges.size() || index2 / 2 < y.ranges.size()) {
 			int value1, value2;
@@ -503,11 +504,11 @@ public class IndexedRangeList {
 				if (value1 < value2) {
 					state = 0;
 					++index1;
-					ret.ranges.add(new Range(0, firstOfRemainder, value1));
+					ret.ranges.add(new Range(0, firstOfRemainder, value1 - firstOfRemainder + 1));
 				} else {
 					state = 3;
 					++index2;
-					ret.ranges.add(new Range(0, firstOfRemainder, value2 - 1));
+					ret.ranges.add(new Range(0, firstOfRemainder, value2 - 1 - firstOfRemainder + 1));
 				}
 				break;
 
@@ -540,6 +541,7 @@ public class IndexedRangeList {
 				throw new IllegalStateException("Illegal value of state");
 			}
 		}
+		ret.updateIndex(0);
 		return ret;
 	}
 

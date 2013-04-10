@@ -108,5 +108,59 @@ public class IndexedRangeListTest {
 		checkRemoveOneRange(5, 2, "[4,(11,16),(26,28),(32,34)]");
 		checkRemoveOneRange(5, 1, "[4,6,(11,16),(26,28),(32,34)]");
 		checkRemoveOneRange(5, 8, "[4,(13,16),(26,28),(32,34)]");
+		checkRemoveOneRange(7, 2, "[(4,6),(11,16),(26,28),(32,34)]");
+		checkRemoveOneRange(7, 10, "[(4,6),(26,28),(32,34)]");
+		checkRemoveOneRange(7, 26, "[(4,6),(33,34)]");
+		checkRemoveOneRange(11, 21, "[(4,6),(32,34)]");
+		checkRemoveOneRange(12, 2, "[(4,6),11,(14,16),(26,28),(32,34)]");
+		checkRemoveOneRange(13, 4, "[(4,6),(11,12),(26,28),(32,34)]");
+	}
+
+	@Test
+	public void testIntersect() {
+		IndexedRangeList x = new IndexedRangeList();
+		x.addRange(1, 3);
+		x.addRange(5, 6);
+		x.addRange(13, 12); // [(1,3),(5,10),(13,24)]
+
+		IndexedRangeList y = new IndexedRangeList();
+		y.addRange(2, 12);
+		y.addRange(15, 86); // [(2,13),(15,100)]
+
+		IndexedRangeList rs = IndexedRangeList.intersectWith(x, y);
+		assertTrue(rs.isValid());
+		assertEquals("[(2,3),(5,10),13,(15,24)]", rs.toString());
+	}
+
+	@Test
+	public void testMerge() {
+		IndexedRangeList x = new IndexedRangeList();
+		x.addRange(1, 3);
+		x.addRange(5, 6);
+		x.addRange(13, 12); // [(1,3),(5,10),(13,24)]
+
+		IndexedRangeList y = new IndexedRangeList();
+		y.addRange(2, 12);
+		y.addRange(15, 86); // [(2,13),(15,100)]
+
+		IndexedRangeList rs = IndexedRangeList.mergeWith(x, y);
+		assertTrue(rs.isValid());
+		assertEquals("[(1,100)]", rs.toString());
+	}
+
+	@Test
+	public void testRemainder() {
+		IndexedRangeList x = new IndexedRangeList();
+		x.addRange(1, 3);
+		x.addRange(5, 6);
+		x.addRange(13, 12); // [(1,3),(5,10),(13,24)]
+
+		IndexedRangeList y = new IndexedRangeList();
+		y.addRange(2, 12);
+		y.addRange(15, 86); // [(2,13),(15,100)]
+
+		IndexedRangeList rs = IndexedRangeList.remainder(x, y);
+		assertTrue(rs.isValid());
+		assertEquals("[1,14]", rs.toString());
 	}
 }
