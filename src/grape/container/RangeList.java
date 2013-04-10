@@ -87,28 +87,28 @@ public class RangeList {
 	 * 查找指定行号是否在该容器中
 	 */
 	public boolean contains(int value) {
-		return positionOf(value) >= 0;
+		return binarySearch(value) >= 0;
 	}
 
 	/**
-	 * 查找指定的值的存储位置
+	 * 使用值做二分查找，如果找到则返回找到的位置(>=0)，否则返回 (-insertPoint-1)，
+	 * insertPoint 是用来做插入的位置
 	 *
-	 * @return -1, 如果没有找到
+	 * @return 找到则返回 >=0，否则 <0
 	 */
-	private int positionOf(int value) {
-		// 二分查找
-		int leftBound = -1, rightBound = pairList.size();
-		while (leftBound + 1 < rightBound) {
-			int middle = (leftBound + rightBound) / 2;
-			long middlePair = pairList.get(middle);
-			if (value < getLeft(middlePair))
-				rightBound = middle;
-			else if (value > getRight(middlePair))
-				leftBound = middle;
+	private int binarySearch(int value) {
+		int left = -1, right = pairList.size();
+		while (left + 1 < right) {
+			int middle = (left + right) / 2;
+			long pair = pairList.get(middle);
+			if (getRight(pair) < value)
+				left = middle;
+			else if (getLeft(pair) > value)
+				right = middle;
 			else
 				return middle;
 		}
-		return -1;
+		return -(right + 1);
 	}
 
 	/**
