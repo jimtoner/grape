@@ -37,6 +37,14 @@ public class RangeList2 {
 		public Range clone() {
 			return new Range(index, valueStart, valueCount);
 		}
+
+		@Override
+		public String toString() {
+			if (valueCount == 1)
+				return Integer.toString(valueStart);
+			return "(" + Integer.toString(getFirstValue()) + "," +
+				Integer.toString(getLastValue()) + ")";
+		}
 	}
 
 	private DequeList<Range> ranges = new ArrayDequeList<Range>();
@@ -177,7 +185,7 @@ public class RangeList2 {
 		if (ranges.size() > 0) {
 			Range r = ranges.get(0);
 			int last = start + count - 1;
-			if (last < r.getFirstValue()) {
+			if (start + count < r.getFirstValue()) {
 				ranges.add(0, new Range(0, start, count));
 				updateIndex(1);
 				return;
@@ -211,9 +219,9 @@ public class RangeList2 {
 			i2 = -i2 - 2;
 
 		if (i1 <= i2) {
-			ranges.subList(i1, i2 + 1).clear();
 			int min_start = Math.min(start, ranges.get(i1).getFirstValue());
 			int max_count = Math.max(start + count, ranges.get(i2).getLastValue() + 1) - min_start;
+			ranges.subList(i1, i2 + 1).clear();
 			ranges.add(i1, new Range(0, min_start, max_count));
 		} else {
 			ranges.add(i1, new Range(0, start, count));
