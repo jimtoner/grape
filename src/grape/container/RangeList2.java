@@ -185,7 +185,7 @@ public class RangeList2 {
 		if (ranges.size() > 0) {
 			Range r = ranges.get(0);
 			int last = start + count - 1;
-			if (start + count < r.getFirstValue()) {
+			if (last + 1 < r.getFirstValue()) {
 				ranges.add(0, new Range(0, start, count));
 				updateIndex(1);
 				return;
@@ -199,7 +199,7 @@ public class RangeList2 {
 				return;
 			}
 			r = ranges.get(ranges.size() - 1);
-			if (start > r.getLastValue()) {
+			if (start - 1 > r.getLastValue()) {
 				ranges.add(new Range(r.index + r.valueCount, start, count));
 				return;
 			} else if (start >= r.getFirstValue()) {
