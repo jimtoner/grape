@@ -141,10 +141,17 @@ public class RangeList {
 	}
 
 	/**
-	 * 添加(取并集)
+	 * 添加
 	 */
 	public void add(int value) {
 		addRange(value, value);
+	}
+
+	/**
+	 * 删除
+	 */
+	public void remove(int value) {
+		removeRange(value, 1);
 	}
 
 	/**
@@ -206,6 +213,62 @@ public class RangeList {
 		} else {
 			pairList.add(i1, makePair(start, start + count - 1));
 		}
+	}
+
+	/**
+	 * 清除一个值范围
+	 */
+	public void removeRange(int start, int count) {
+		if (count < 0)
+			throw new IllegalArgumentException();
+		else if (count == 0)
+			return;
+
+		// 二分查找法确定范围
+		int last = start + count - 1;
+		int i1 = binarySearch(start), i2 = binarySearch(last);
+		if (i1 < 0)
+			i1 = -i1 - 1;
+		if (i2 < 0)
+			i2 = -i2 - 2;
+		if (i1 < i2) {
+			long pair = pairList.get(i1);
+			int left = getLeft(pair);
+			int right = getRight(pair);
+			if (left < start) {
+				pairList.set(i1, makePair(left, start - 1));
+				++i1;
+			}
+			pair = pairList.get(i2);
+			left = getLeft(pair);
+			right = getRight(pair);
+			if (right > last) {
+				pairList.set(i2, makePair(start + count, right));
+				--i2;
+			}
+			if (i1 <= i2)
+				pairList.removeRange(i1, i2 + 1);
+			return;
+		} else if (i1 == i2) {
+			long pair = pairList.get(i1);
+			int left = getLeft(pair);
+			int right = getRight(pair);
+			if (start <= left && last >= right) {
+				pairList.remove(i1);
+				return;
+			} else if (start > left && last < right) {
+				pairList.add(i1 + 1, makePair(last + 1, right));
+				pairList.set(i1, makePair(left, start - 1));
+				return;
+			} else if (start <= left) {
+				pairList.set(i1, makePair(last + 1, right));
+				return;
+			} else {
+				pairList.set(i1, makePair(left, start - 1));
+				return;
+			}
+		}
+
 	}
 
 	/**

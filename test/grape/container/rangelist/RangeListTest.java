@@ -84,7 +84,7 @@ public class RangeListTest {
 		assertFalse(l.contains(7));
 		assertTrue(l.contains(17));
 	}
-/*
+
 	private void checkRemoveOneRange(int start, int count, String expected) {
 		RangeList l = new RangeList();
 		l.addRange(4, 3);
@@ -97,7 +97,7 @@ public class RangeListTest {
 		l.removeRange(start, count);
 		assertTrue(l.isValid());
 		assertEquals(expected, l.toString());
-	}*//*
+	}
 
 	@Test
 	public void testRemoveRange() {
@@ -114,7 +114,7 @@ public class RangeListTest {
 		checkRemoveOneRange(11, 21, "[(4,6),(32,34)]");
 		checkRemoveOneRange(12, 2, "[(4,6),11,(14,16),(26,28),(32,34)]");
 		checkRemoveOneRange(13, 4, "[(4,6),(11,12),(26,28),(32,34)]");
-	}*/
+	}
 
 	@Test
 	public void testIntersect() {
