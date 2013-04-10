@@ -191,82 +191,21 @@ public class RangeList {
 			return;
 		}
 
-		// 合并
-		LongArrayList newList = new LongArrayList();
-		int index1 = 0, index2 = 0;
-		int state = 0;  // 0 for none; 1 for single x; 2 for single y; 3 for x and y
-		int firstOfMerge = 0;
-		while (index1 / 2 < pairList.size() || index2 < 2) {
-			int value1, value2;
-			if (index1 / 2 < pairList.size()) {
-				long pair1 = pairList.get(index1 / 2);
-				value1 = (index1 % 2 == 0 ? getLeft(pair1) : getRight(pair1));
-			} else {
-				value1 = Integer.MAX_VALUE;
-			}
-			if (index2 < 2)
-				value2 = (index2 % 2 == 0 ? start : last);
-			else
-				value2 = Integer.MAX_VALUE;
+		// 二分查找法确定可以合并的 range 范围
+		int i1 = binarySearch(start - 1), i2 = binarySearch(start + count);
+		if (i1 < 0)
+			i1 = -i1 - 1;
+		if (i2 < 0)
+			i2 = -i2 - 2;
 
-			switch (state) {
-			case 0:
-				assert index1 % 2 == 0;
-				assert index2 % 2 == 0;
-				if (value1 < value2) {
-					state = 1;
-					++index1;
-					firstOfMerge = value1;
-				} else {
-					state = 2;
-					++index2;
-					firstOfMerge = value2;
-				}
-				break;
-
-			case 1:
-				assert index1 % 2 == 1;
-				assert index2 % 2 == 0;
-				if (value1 < value2) {
-					state = 0;
-					++index1;
-					newList.add(makePair(firstOfMerge, value1));
-				} else {
-					state = 3;
-					++index2;
-				}
-				break;
-
-			case 2:
-				assert index1 % 2 == 0;
-				assert index2 % 2 == 1;
-				if (value1 <= value2) {
-					state = 3;
-					++index1;
-				} else {
-					state = 0;
-					++index2;
-					newList.add(makePair(firstOfMerge, value2));
-				}
-				break;
-
-			case 3:
-				assert index1 % 2 == 1;
-				assert index2 % 2 == 1;
-				if (value1 < value2) {
-					state = 2;
-					++index1;
-				} else {
-					state = 1;
-					++index2;
-				}
-				break;
-
-			default:
-				throw new IllegalStateException("Illegal value of state");
-			}
+		if (i1 <= i2) {
+			int min_left = Math.min(start, getLeft(pairList.get(i1)));
+			int max_right = Math.max(start + count - 1, getRight(pairList.get(i2)));
+			pairList.removeRange(i1, i2 + 1);
+			pairList.add(i1, makePair(min_left, max_right));
+		} else {
+			pairList.add(i1, makePair(start, start + count - 1));
 		}
-		pairList = newList;
 	}
 
 	/**
@@ -752,7 +691,7 @@ public class RangeList {
 			long pair = pairList.get(i);
 			int left = getLeft(pair);
 			int right = getRight(pair);
-			if (left >= right)
+			if (left > right)
 				return false;
 			if (i != 0) {
 				long bpair = pairList.get(i - 1);
