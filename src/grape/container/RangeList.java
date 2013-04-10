@@ -464,7 +464,7 @@ public class RangeList {
 		int index1 = 0, index2 = 0;
 		int state = 0;
 		int firstOfRemainder = 0;
-		while (index1 / 2 < x.pairList.size() || index2 / 2 < y.pairList.size()) {
+		while (index1 / 2 < x.pairList.size()) {
 			int value1, value2;
 			if (index1 / 2 < x.pairList.size()) {
 				long pair1 = x.pairList.get(index1 / 2);

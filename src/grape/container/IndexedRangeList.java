@@ -475,7 +475,7 @@ public class IndexedRangeList {
 		int index1 = 0, index2 = 0;
 		int state = 0; // 0 for none; 1 for single x; 2 for single y; 3 for x and y
 		int firstOfRemainder = 0;
-		while (index1 / 2 < x.ranges.size() || index2 / 2 < y.ranges.size()) {
+		while (index1 / 2 < x.ranges.size()) {
 			int value1, value2;
 			if (index1 / 2 < x.ranges.size()) {
 				Range pair1 = x.ranges.get(index1 / 2);
