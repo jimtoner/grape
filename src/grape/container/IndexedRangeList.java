@@ -12,7 +12,7 @@ import java.util.Iterator;
  * @author jingqi
  *
  */
-public class RangeList2 {
+public class IndexedRangeList {
 
 	private static class Range {
 		int index; // 第一个 value 的索引
@@ -255,7 +255,7 @@ public class RangeList2 {
 			if (r.getLastValue() > last) {
 				r.valueCount = r.getLastValue() - last;
 				r.valueStart = start + count;
-				--i1;
+				--i2;
 			}
 			if (i1 <= i2)
 				ranges.subList(i1, i2 + 1).clear();
@@ -292,8 +292,8 @@ public class RangeList2 {
 	 * 容器 [(2,13),(15,100)]
 	 * 交集 [(2,3),(5,10),13,(15,24)]
 	 */
-	public static RangeList2 intersectWith(RangeList2 x, RangeList2 y) {
-		RangeList2 ret = new RangeList2();
+	public static IndexedRangeList intersectWith(IndexedRangeList x, IndexedRangeList y) {
+		IndexedRangeList ret = new IndexedRangeList();
 		int index1 = 0, index2 = 0;
 		int state = 0; // 0 for none; 1 for single x; 2 for single y; 3 for x and y
 		int firstOfInteract = 0;
@@ -368,8 +368,8 @@ public class RangeList2 {
 	/**
 	 * 两个容器做并集
 	 */
-	public static RangeList2 mergeWith(RangeList2 x, RangeList2 y) {
-		RangeList2 ret = new RangeList2();
+	public static IndexedRangeList mergeWith(IndexedRangeList x, IndexedRangeList y) {
+		IndexedRangeList ret = new IndexedRangeList();
 		// 状态机基本上和intersectWith()方法中一样
 		int index1 = 0, index2 = 0;
 		int state = 0; // 0 for none; 1 for single x; 2 for single y; 3 for x and y
@@ -461,8 +461,8 @@ public class RangeList2 {
 	 * 两个容器做补集
 	 * {x} - {y}
 	 */
-	public static RangeList2 remainder(RangeList2 x, RangeList2 y) {
-		RangeList2 ret = new RangeList2();
+	public static IndexedRangeList remainder(IndexedRangeList x, IndexedRangeList y) {
+		IndexedRangeList ret = new IndexedRangeList();
 		int index1 = 0, index2 = 0;
 		int state = 0;
 		int firstOfRemainder = 0;
@@ -563,8 +563,8 @@ public class RangeList2 {
 			{
 				currentValue = -1;
 				nextPairIndex = 0;
-				if (nextPairIndex < RangeList2.this.ranges.size()) {
-					Range pair = RangeList2.this.ranges.get(nextPairIndex);
+				if (nextPairIndex < IndexedRangeList.this.ranges.size()) {
+					Range pair = IndexedRangeList.this.ranges.get(nextPairIndex);
 					nextValue = pair.getFirstValue();
 					secondOfPair = pair.getLastValue();
 				}
@@ -572,7 +572,7 @@ public class RangeList2 {
 
 			@Override
 			public boolean hasNext() {
-				return nextPairIndex < RangeList2.this.ranges.size();
+				return nextPairIndex < IndexedRangeList.this.ranges.size();
 			}
 
 			@Override
@@ -585,8 +585,8 @@ public class RangeList2 {
 				++nextValue;
 				if (nextValue > secondOfPair) {
 					++nextPairIndex;
-					if (nextPairIndex < RangeList2.this.ranges.size()) {
-						Range pair = RangeList2.this.ranges.get(nextPairIndex);
+					if (nextPairIndex < IndexedRangeList.this.ranges.size()) {
+						Range pair = IndexedRangeList.this.ranges.get(nextPairIndex);
 						nextValue = pair.getFirstValue();
 						secondOfPair = pair.getLastValue();
 					}
@@ -635,8 +635,8 @@ public class RangeList2 {
 				currentValue = -1;
 				nextValue = lastValue + 1;
 				nextPairIndex = startPairIndex;
-				if (nextPairIndex < RangeList2.this.ranges.size()) {
-					Range pair = RangeList2.this.ranges.get(nextPairIndex);
+				if (nextPairIndex < IndexedRangeList.this.ranges.size()) {
+					Range pair = IndexedRangeList.this.ranges.get(nextPairIndex);
 					int firstOfpair = pair.getFirstValue();
 					secondOfPair = pair.getLastValue();
 					nextValue = Math.max(firstOfpair, firstValue);
@@ -658,8 +658,8 @@ public class RangeList2 {
 				if (nextValue > secondOfPair) {
 					++nextPairIndex;
 					nextValue = lastValue + 1;
-					if (nextPairIndex < RangeList2.this.ranges.size()) {
-						Range pair = RangeList2.this.ranges.get(nextPairIndex);
+					if (nextPairIndex < IndexedRangeList.this.ranges.size()) {
+						Range pair = IndexedRangeList.this.ranges.get(nextPairIndex);
 						int firstOfpair = pair.getFirstValue();
 						secondOfPair = pair.getLastValue();
 						nextValue = firstOfpair;
@@ -710,7 +710,7 @@ public class RangeList2 {
 				nextValue = lastValue + 1;
 				rightBoundPairIndex = startPairIndex;
 				if (rightBoundPairIndex - 1 >= 0) {
-					Range pair = RangeList2.this.ranges.get(rightBoundPairIndex - 1);
+					Range pair = IndexedRangeList.this.ranges.get(rightBoundPairIndex - 1);
 					int second = pair.getLastValue();
 					nextValue = Math.max(second + 1, firstValue);
 				} else {
@@ -719,8 +719,8 @@ public class RangeList2 {
 
 				rightBound = lastValue + 1;
 				nextStart = lastValue + 1;
-				if (rightBoundPairIndex < RangeList2.this.ranges.size()) {
-					Range pair = RangeList2.this.ranges.get(rightBoundPairIndex);
+				if (rightBoundPairIndex < IndexedRangeList.this.ranges.size()) {
+					Range pair = IndexedRangeList.this.ranges.get(rightBoundPairIndex);
 					rightBound = pair.getFirstValue();
 					nextStart = pair.getLastValue();
 				}
@@ -744,8 +744,8 @@ public class RangeList2 {
 					++rightBoundPairIndex;
 					rightBound = lastValue + 1;
 					nextStart = lastValue + 1;
-					if (rightBoundPairIndex < RangeList2.this.ranges.size()) {
-						Range pair = RangeList2.this.ranges.get(rightBoundPairIndex);
+					if (rightBoundPairIndex < IndexedRangeList.this.ranges.size()) {
+						Range pair = IndexedRangeList.this.ranges.get(rightBoundPairIndex);
 						rightBound = pair.getFirstValue();
 						nextStart = pair.getLastValue();
 					}
@@ -785,8 +785,8 @@ public class RangeList2 {
 	}
 
 	@Override
-	public RangeList2 clone() {
-		RangeList2 l = new RangeList2();
+	public IndexedRangeList clone() {
+		IndexedRangeList l = new IndexedRangeList();
 		for (int i = 0, s = ranges.size(); i < s; ++i)
 			l.ranges.add(ranges.get(i).clone());
 		return l;
