@@ -108,7 +108,7 @@ public class IndexedRangeList {
 	 * 查找指定值是否在该容器中
 	 */
 	public boolean contains(int value) {
-		return binaraySearch(value) >= 0;
+		return binarySearch(value) >= 0;
 	}
 
 	public boolean contains(IndexedRangeList x) {
@@ -119,7 +119,7 @@ public class IndexedRangeList {
 	 * 查找指定值的索引位置
 	 */
 	public int indexOf(int value) {
-		int location = binaraySearch(value);
+		int location = binarySearch(value);
 		if (location < 0)
 			return -1;
 		Range r = ranges.get(location);
@@ -165,7 +165,7 @@ public class IndexedRangeList {
 	 *
 	 * @return 找到则返回 >=0，否则 <0
 	 */
-	private int binaraySearch(int value) {
+	private int binarySearch(int value) {
 		int left = -1, right = ranges.size();
 		while (left + 1 < right) {
 			int middle = (left + right) / 2;
@@ -226,7 +226,7 @@ public class IndexedRangeList {
 		}
 
 		// 二分查找法确定可以合并的 range 范围
-		int i1 = binaraySearch(start - 1), i2 = binaraySearch(start + count);
+		int i1 = binarySearch(start - 1), i2 = binarySearch(start + count);
 		if (i1 < 0)
 			i1 = -i1 - 1;
 		if (i2 < 0)
@@ -254,7 +254,7 @@ public class IndexedRangeList {
 
 		// 二分查找法确定范围
 		int last = start + count - 1;
-		int i1 = binaraySearch(start), i2 = binaraySearch(last);
+		int i1 = binarySearch(start), i2 = binarySearch(last);
 		if (i1 < 0)
 			i1 = -i1 - 1;
 		if (i2 < 0)
