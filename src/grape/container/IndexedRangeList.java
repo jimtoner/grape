@@ -78,6 +78,10 @@ public class IndexedRangeList {
 		return r.index + r.valueCount;
 	}
 
+	public boolean isEmpty() {
+		return ranges.isEmpty();
+	}
+
 	/**
 	 * 获取指定位置的值
 	 */
@@ -105,6 +109,10 @@ public class IndexedRangeList {
 	 */
 	public boolean contains(int value) {
 		return binaraySearch(value) >= 0;
+	}
+
+	public boolean contains(IndexedRangeList x) {
+		return remainder(x, this).isEmpty();
 	}
 
 	/**

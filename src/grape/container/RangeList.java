@@ -63,6 +63,10 @@ public class RangeList {
 		return ret;
 	}
 
+	public boolean isEmpty() {
+		return pairList.isEmpty();
+	}
+
 	/**
 	 * 获取指定位置的元素
 	 * NOTE: <b>需要线性遍历元素</b>
@@ -88,6 +92,10 @@ public class RangeList {
 	 */
 	public boolean contains(int value) {
 		return binarySearch(value) >= 0;
+	}
+
+	public boolean contains(RangeList x) {
+		return remainder(x, this).isEmpty();
 	}
 
 	/**
