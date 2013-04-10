@@ -1,4 +1,4 @@
-package grape.container;
+package grape.container.rangelist;
 
 import grape.container.primeval.list.LongArrayList;
 
@@ -35,7 +35,7 @@ public class RangeList {
 	/**
 	 * 获取第一个数值
 	 */
-	public int getFirst() {
+	public int getFirstValue() {
 		if (pairList.size() == 0)
 			throw new IllegalStateException("list is empty");
 		return getLeft(pairList.get(0));
@@ -44,7 +44,7 @@ public class RangeList {
 	/**
 	 * 获取最后一个数值
 	 */
-	public int getLast() {
+	public int getLastValue() {
 		if (pairList.size() == 0)
 			throw new IllegalStateException("list is empty");
 		return getRight(pairList.get(pairList.size() - 1));
@@ -141,37 +141,6 @@ public class RangeList {
 	}
 
 	/**
-	 * 在末尾添加一个整数(用于优化 add()，该整数必须大于列表中已有的最的大数)
-	 */
-	public void append(int value) {
-		appendRange(value, value);
-	}
-
-	/**
-	 * 在末尾添加一个范围的行号(用于优化 add()，该整数范围必须大于列表中已有的最大的数)
-	 */
-	public void appendRange(int first, int last) {
-		if (first > last)
-			throw new IllegalArgumentException();
-
-		if (pairList.size() == 0) {
-			pairList.add(makePair(first, last));
-			return;
-		}
-
-		long lastPair = pairList.get(pairList.size() - 1);
-		int left = getLeft(lastPair);
-		int right = getRight(lastPair);
-		if (first <= right)
-			throw new IllegalArgumentException("you should call add() to add this value");
-
-		if (first == right + 1)
-			pairList.set(pairList.size() - 1, makePair(left, last));
-		else
-			pairList.add(makePair(first, last));
-	}
-
-	/**
 	 * 添加(取并集)
 	 */
 	public void add(int value) {
@@ -181,30 +150,46 @@ public class RangeList {
 	/**
 	 * 添加行范围(取并集)
 	 */
-	public void addRange(int first, int last) {
-		assert first <= last;
+	public void addRange(int start, int count) {
+		if (count < 0)
+			throw new IllegalArgumentException();
+		else if (count == 0)
+			return;
+
+		// 对空容器优化
+		int last = start + count - 1;
 		if (pairList.size() == 0) {
-			pairList.add(makePair(first, last));
+			pairList.add(makePair(start, last));
+			return;
+		}
+
+		// 对于头部进行优化
+		long pair = pairList.get(0);
+		int left = getLeft(pair);
+		int right = getRight(pair);
+		if (last + 1 < left) {
+			pairList.add(0, makePair(start, last));
+			return;
+		} else if (last <= right) {
+			if (start >= left)
+				return;
+			pairList.set(0, makePair(start, right));
 			return;
 		}
 
 		// 对于末尾进行优化
-		long lastPair = pairList.get(pairList.size() - 1);
-		int left = getLeft(lastPair);
-		int right = getRight(lastPair);
-		if (first == right + 1)
+		pair = pairList.get(pairList.size() - 1);
+		left = getLeft(pair);
+		right = getRight(pair);
+		if (start - 1 > right) {
+			pairList.add(makePair(start, last));
+			return;
+		} else if (start >= left) {
+			if (last <= right)
+				return;
 			pairList.set(pairList.size() - 1, makePair(left, last));
-		else if (first > right + 1)
-			pairList.add(makePair(first, last));
-
-		// 对于头部进行优化
-		long firstPair = pairList.get(0);
-		left = getLeft(firstPair);
-		right = getRight(firstPair);
-		if (last == left - 1)
-			pairList.set(0, makePair(first, right));
-		else if (last < left - 1)
-			pairList.add(0, makePair(first, last));
+			return;
+		}
 
 		// 合并
 		LongArrayList newList = new LongArrayList();
@@ -220,7 +205,7 @@ public class RangeList {
 				value1 = Integer.MAX_VALUE;
 			}
 			if (index2 < 2)
-				value2 = (index2 % 2 == 0 ? first : last);
+				value2 = (index2 % 2 == 0 ? start : last);
 			else
 				value2 = Integer.MAX_VALUE;
 
@@ -757,6 +742,26 @@ public class RangeList {
 				throw new IllegalStateException("Don\'t call this method!");
 			}
 		};
+	}
+
+	/**
+	 * 检查容器数据是否是一致的
+	 */
+	public boolean isValid() {
+		for (int i = 0, size = pairList.size(); i < size; ++i) {
+			long pair = pairList.get(i);
+			int left = getLeft(pair);
+			int right = getRight(pair);
+			if (left >= right)
+				return false;
+			if (i != 0) {
+				long bpair = pairList.get(i - 1);
+				int bright = getRight(bpair);
+				if (left - 1 <= bright)
+					return false;
+			}
+		}
+		return true;
 	}
 
 	@Override

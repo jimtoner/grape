@@ -1,4 +1,4 @@
-package grape.container;
+package grape.container.rangelist;
 
 import grape.container.deqlist.ArrayDequeList;
 import grape.container.deqlist.DequeList;
@@ -189,34 +189,40 @@ public class IndexedRangeList {
 		else if (count == 0)
 			return;
 
-		// 优化头部和尾部插入的特殊情况
-		if (ranges.size() > 0) {
-			Range r = ranges.get(0);
-			int last = start + count - 1;
-			if (last + 1 < r.getFirstValue()) {
-				ranges.add(0, new Range(0, start, count));
-				updateIndex(1);
+		// 对空容器优化
+		if (ranges.size() == 0) {
+			ranges.add(new Range(0, start, count));
+			return;
+		}
+
+		// 对头部插入优化
+		Range r = ranges.get(0);
+		int last = start + count - 1;
+		if (last + 1 < r.getFirstValue()) {
+			ranges.add(0, new Range(0, start, count));
+			updateIndex(1);
+			return;
+		} else if (last <= r.getLastValue()) {
+			if (start >= r.getFirstValue())
 				return;
-			} else if (last <= r.getLastValue()) {
-				if (start >= r.getFirstValue())
-					return;
-				int x = r.getFirstValue() - start;
-				r.valueStart = start;
-				r.valueCount += x;
-				updateIndex(1);
+			int x = r.getFirstValue() - start;
+			r.valueStart = start;
+			r.valueCount += x;
+			updateIndex(1);
+			return;
+		}
+
+		// 对尾部插入优化
+		r = ranges.get(ranges.size() - 1);
+		if (start - 1 > r.getLastValue()) {
+			ranges.add(new Range(r.index + r.valueCount, start, count));
+			return;
+		} else if (start >= r.getFirstValue()) {
+			if (last <= r.getLastValue())
 				return;
-			}
-			r = ranges.get(ranges.size() - 1);
-			if (start - 1 > r.getLastValue()) {
-				ranges.add(new Range(r.index + r.valueCount, start, count));
-				return;
-			} else if (start >= r.getFirstValue()) {
-				if (last <= r.getLastValue())
-					return;
-				int x = last - r.getLastValue();
-				r.valueCount += x;
-				return;
-			}
+			int x = last - r.getLastValue();
+			r.valueCount += x;
+			return;
 		}
 
 		// 二分查找法确定可以合并的 range 范围
@@ -772,7 +778,7 @@ public class IndexedRangeList {
 	}
 
 	/**
-	 * 检测容器状态是否是一直的，不一致则说明有错误
+	 * 检测容器状态是否是一致的，不一致则说明有错误
 	 */
 	public boolean isValid() {
 		for (int i = 0, size = ranges.size(); i < size; ++i) {
