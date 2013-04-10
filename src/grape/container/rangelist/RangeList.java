@@ -16,9 +16,9 @@ public class RangeList {
 	/**
 	 * 一个 [lef, right] 闭区间组成一个 pair，该 pair 用 long 类型存储，高32位为 left, 低32位为 right
 	 */
-	private LongArrayList pairList = new LongArrayList();
+	private LongArrayList ranges = new LongArrayList();
 
-	private static long makePair(int left, int right) {
+	private static long makeRange(int left, int right) {
 		if (left > right)
 			throw new IllegalArgumentException();
 		return (((long) left) << 32) + right;
@@ -36,18 +36,18 @@ public class RangeList {
 	 * 获取第一个数值
 	 */
 	public int getFirstValue() {
-		if (pairList.size() == 0)
+		if (ranges.size() == 0)
 			throw new IllegalStateException("list is empty");
-		return getLeft(pairList.get(0));
+		return getLeft(ranges.get(0));
 	}
 
 	/**
 	 * 获取最后一个数值
 	 */
 	public int getLastValue() {
-		if (pairList.size() == 0)
+		if (ranges.size() == 0)
 			throw new IllegalStateException("list is empty");
-		return getRight(pairList.get(pairList.size() - 1));
+		return getRight(ranges.get(ranges.size() - 1));
 	}
 
 	/**
@@ -56,15 +56,15 @@ public class RangeList {
 	 */
 	public int size() {
 		int ret = 0;
-		for (int i = 0, size = pairList.size(); i < size; ++i) {
-			long pair = pairList.get(i);
+		for (int i = 0, size = ranges.size(); i < size; ++i) {
+			long pair = ranges.get(i);
 			ret += getRight(pair) - getLeft(pair) + 1;
 		}
 		return ret;
 	}
 
 	public boolean isEmpty() {
-		return pairList.isEmpty();
+		return ranges.isEmpty();
 	}
 
 	/**
@@ -75,8 +75,8 @@ public class RangeList {
 		if (index < 0)
 			throw new IndexOutOfBoundsException();
 
-		for (int i = 0, size = pairList.size(); i < size; ++i) {
-			long pair = pairList.get(i);
+		for (int i = 0, size = ranges.size(); i < size; ++i) {
+			long pair = ranges.get(i);
 			int left = getLeft(pair);
 			int len = getRight(pair) - left + 1;
 			if (index < len)
@@ -105,10 +105,10 @@ public class RangeList {
 	 * @return 找到则返回 >=0，否则 <0
 	 */
 	private int binarySearch(int value) {
-		int left = -1, right = pairList.size();
+		int left = -1, right = ranges.size();
 		while (left + 1 < right) {
 			int middle = (left + right) / 2;
-			long pair = pairList.get(middle);
+			long pair = ranges.get(middle);
 			if (getRight(pair) < value)
 				left = middle;
 			else if (getLeft(pair) > value)
@@ -127,8 +127,8 @@ public class RangeList {
 	 */
 	public int indexOf(int value) {
 		int index = 0;
-		for (int i = 0, size = pairList.size(); i < size; ++i) {
-			long pair = pairList.get(i);
+		for (int i = 0, size = ranges.size(); i < size; ++i) {
+			long pair = ranges.get(i);
 			int left = getLeft(pair), right = getRight(pair);
 			if (value < left)
 				return -1;
@@ -165,36 +165,36 @@ public class RangeList {
 
 		// 对空容器优化
 		int last = start + count - 1;
-		if (pairList.size() == 0) {
-			pairList.add(makePair(start, last));
+		if (ranges.size() == 0) {
+			ranges.add(makeRange(start, last));
 			return;
 		}
 
 		// 对于头部进行优化
-		long pair = pairList.get(0);
+		long pair = ranges.get(0);
 		int left = getLeft(pair);
 		int right = getRight(pair);
 		if (last + 1 < left) {
-			pairList.add(0, makePair(start, last));
+			ranges.add(0, makeRange(start, last));
 			return;
 		} else if (last <= right) {
 			if (start >= left)
 				return;
-			pairList.set(0, makePair(start, right));
+			ranges.set(0, makeRange(start, right));
 			return;
 		}
 
 		// 对于末尾进行优化
-		pair = pairList.get(pairList.size() - 1);
+		pair = ranges.get(ranges.size() - 1);
 		left = getLeft(pair);
 		right = getRight(pair);
 		if (start - 1 > right) {
-			pairList.add(makePair(start, last));
+			ranges.add(makeRange(start, last));
 			return;
 		} else if (start >= left) {
 			if (last <= right)
 				return;
-			pairList.set(pairList.size() - 1, makePair(left, last));
+			ranges.set(ranges.size() - 1, makeRange(left, last));
 			return;
 		}
 
@@ -206,12 +206,12 @@ public class RangeList {
 			i2 = -i2 - 2;
 
 		if (i1 <= i2) {
-			int min_left = Math.min(start, getLeft(pairList.get(i1)));
-			int max_right = Math.max(start + count - 1, getRight(pairList.get(i2)));
-			pairList.removeRange(i1, i2 + 1);
-			pairList.add(i1, makePair(min_left, max_right));
+			int min_left = Math.min(start, getLeft(ranges.get(i1)));
+			int max_right = Math.max(start + count - 1, getRight(ranges.get(i2)));
+			ranges.removeRange(i1, i2 + 1);
+			ranges.add(i1, makeRange(min_left, max_right));
 		} else {
-			pairList.add(i1, makePair(start, start + count - 1));
+			ranges.add(i1, makeRange(start, start + count - 1));
 		}
 	}
 
@@ -232,39 +232,39 @@ public class RangeList {
 		if (i2 < 0)
 			i2 = -i2 - 2;
 		if (i1 < i2) {
-			long pair = pairList.get(i1);
+			long pair = ranges.get(i1);
 			int left = getLeft(pair);
 			int right = getRight(pair);
 			if (left < start) {
-				pairList.set(i1, makePair(left, start - 1));
+				ranges.set(i1, makeRange(left, start - 1));
 				++i1;
 			}
-			pair = pairList.get(i2);
+			pair = ranges.get(i2);
 			left = getLeft(pair);
 			right = getRight(pair);
 			if (right > last) {
-				pairList.set(i2, makePair(start + count, right));
+				ranges.set(i2, makeRange(start + count, right));
 				--i2;
 			}
 			if (i1 <= i2)
-				pairList.removeRange(i1, i2 + 1);
+				ranges.removeRange(i1, i2 + 1);
 			return;
 		} else if (i1 == i2) {
-			long pair = pairList.get(i1);
+			long pair = ranges.get(i1);
 			int left = getLeft(pair);
 			int right = getRight(pair);
 			if (start <= left && last >= right) {
-				pairList.remove(i1);
+				ranges.remove(i1);
 				return;
 			} else if (start > left && last < right) {
-				pairList.add(i1 + 1, makePair(last + 1, right));
-				pairList.set(i1, makePair(left, start - 1));
+				ranges.add(i1 + 1, makeRange(last + 1, right));
+				ranges.set(i1, makeRange(left, start - 1));
 				return;
 			} else if (start <= left) {
-				pairList.set(i1, makePair(last + 1, right));
+				ranges.set(i1, makeRange(last + 1, right));
 				return;
 			} else {
-				pairList.set(i1, makePair(left, start - 1));
+				ranges.set(i1, makeRange(left, start - 1));
 				return;
 			}
 		}
@@ -283,10 +283,10 @@ public class RangeList {
 		int index1 = 0, index2 = 0;
 		int state = 0; // 0 for none; 1 for single x; 2 for single y; 3 for x and y
 		int firstOfInteract = 0;
-		while (index1 / 2 < x.pairList.size() && index2 / 2 < y.pairList.size()) {
-			long pair1 = x.pairList.get(index1 / 2);
+		while (index1 / 2 < x.ranges.size() && index2 / 2 < y.ranges.size()) {
+			long pair1 = x.ranges.get(index1 / 2);
 			int value1 = (index1 % 2 == 0 ? getLeft(pair1) : getRight(pair1));
-			long pair2 = y.pairList.get(index2 / 2);
+			long pair2 = y.ranges.get(index2 / 2);
 			int value2 = (index2 % 2 == 0 ? getLeft(pair2) : getRight(pair2));
 
 			// 对于边界重叠的情况，优先进入 state3
@@ -335,11 +335,11 @@ public class RangeList {
 				if (value1 < value2) {
 					state = 2;
 					++index1;
-					ret.pairList.add(makePair(firstOfInteract, value1));
+					ret.ranges.add(makeRange(firstOfInteract, value1));
 				} else {
 					state = 1;
 					++index2;
-					ret.pairList.add(makePair(firstOfInteract, value2));
+					ret.ranges.add(makeRange(firstOfInteract, value2));
 				}
 				break;
 
@@ -359,17 +359,17 @@ public class RangeList {
 		int index1 = 0, index2 = 0;
 		int state = 0; // 0 for none; 1 for single x; 2 for single y; 3 for x and y
 		int firstOfMerge = 0;
-		while (index1 / 2 < x.pairList.size() || index2 / 2 < y.pairList.size()) {
+		while (index1 / 2 < x.ranges.size() || index2 / 2 < y.ranges.size()) {
 			int value1, value2;
-			if (index1 / 2 < x.pairList.size()) {
-				long pair1 = x.pairList.get(index1 / 2);
+			if (index1 / 2 < x.ranges.size()) {
+				long pair1 = x.ranges.get(index1 / 2);
 				value1 = (index1 % 2 == 0 ? getLeft(pair1) : getRight(pair1));
 			} else {
 				value1 = Integer.MAX_VALUE;
 			}
 
-			if (index2 / 2 < y.pairList.size()) {
-				long pair2 = y.pairList.get(index2 / 2);
+			if (index2 / 2 < y.ranges.size()) {
+				long pair2 = y.ranges.get(index2 / 2);
 				value2 = (index2 % 2 == 0 ? getLeft(pair2) : getRight(pair2));
 			} else {
 				value2 = Integer.MAX_VALUE;
@@ -397,10 +397,10 @@ public class RangeList {
 				if (value1 < value2) {
 					state = 0;
 					++index1;
-					if (ret.pairList.size() > 0 && getRight(ret.pairList.get(ret.pairList.size() - 1)) + 1 == firstOfMerge)
-						ret.pairList.set(ret.pairList.size() - 1, makePair(getLeft(ret.pairList.get(ret.pairList.size() - 1)), value1));
+					if (ret.ranges.size() > 0 && getRight(ret.ranges.get(ret.ranges.size() - 1)) + 1 == firstOfMerge)
+						ret.ranges.set(ret.ranges.size() - 1, makeRange(getLeft(ret.ranges.get(ret.ranges.size() - 1)), value1));
 					else
-						ret.pairList.add(makePair(firstOfMerge, value1));
+						ret.ranges.add(makeRange(firstOfMerge, value1));
 				} else {
 					state = 3;
 					++index2;
@@ -416,10 +416,10 @@ public class RangeList {
 				} else {
 					state = 0;
 					++index2;
-					if (ret.pairList.size() > 0 && getRight(ret.pairList.get(ret.pairList.size() - 1)) + 1 == firstOfMerge)
-						ret.pairList.set(ret.pairList.size() - 1, makePair(getLeft(ret.pairList.get(ret.pairList.size() - 1)), value2));
+					if (ret.ranges.size() > 0 && getRight(ret.ranges.get(ret.ranges.size() - 1)) + 1 == firstOfMerge)
+						ret.ranges.set(ret.ranges.size() - 1, makeRange(getLeft(ret.ranges.get(ret.ranges.size() - 1)), value2));
 					else
-						ret.pairList.add(makePair(firstOfMerge, value2));
+						ret.ranges.add(makeRange(firstOfMerge, value2));
 				}
 				break;
 
@@ -451,17 +451,17 @@ public class RangeList {
 		int index1 = 0, index2 = 0;
 		int state = 0;
 		int firstOfRemainder = 0;
-		while (index1 / 2 < x.pairList.size()) {
+		while (index1 / 2 < x.ranges.size()) {
 			int value1, value2;
-			if (index1 / 2 < x.pairList.size()) {
-				long pair1 = x.pairList.get(index1 / 2);
+			if (index1 / 2 < x.ranges.size()) {
+				long pair1 = x.ranges.get(index1 / 2);
 				value1 = (index1 % 2 == 0 ? getLeft(pair1) : getRight(pair1));
 			} else {
 				value1 = Integer.MAX_VALUE;
 			}
 
-			if (index2 / 2 < y.pairList.size()) {
-				long pair2 = y.pairList.get(index2 / 2);
+			if (index2 / 2 < y.ranges.size()) {
+				long pair2 = y.ranges.get(index2 / 2);
 				value2 = (index2 % 2 == 0 ? getLeft(pair2) : getRight(pair2));
 			} else {
 				value2 = Integer.MAX_VALUE;
@@ -488,11 +488,11 @@ public class RangeList {
 				if (value1 < value2) {
 					state = 0;
 					++index1;
-					ret.pairList.add(makePair(firstOfRemainder, value1));
+					ret.ranges.add(makeRange(firstOfRemainder, value1));
 				} else {
 					state = 3;
 					++index2;
-					ret.pairList.add(makePair(firstOfRemainder, value2 - 1));
+					ret.ranges.add(makeRange(firstOfRemainder, value2 - 1));
 				}
 				break;
 
@@ -532,7 +532,7 @@ public class RangeList {
 	 * 清空容器
 	 */
 	public void clear() {
-		pairList.clear();
+		ranges.clear();
 	}
 
 	/**
@@ -548,8 +548,8 @@ public class RangeList {
 			{
 				currentValue = -1;
 				nextPairIndex = 0;
-				if (nextPairIndex < RangeList.this.pairList.size()) {
-					long pair = RangeList.this.pairList.get(nextPairIndex);
+				if (nextPairIndex < RangeList.this.ranges.size()) {
+					long pair = RangeList.this.ranges.get(nextPairIndex);
 					nextValue = RangeList.getLeft(pair);
 					secondOfPair = RangeList.getRight(pair);
 				}
@@ -557,7 +557,7 @@ public class RangeList {
 
 			@Override
 			public boolean hasNext() {
-				return nextPairIndex < RangeList.this.pairList.size();
+				return nextPairIndex < RangeList.this.ranges.size();
 			}
 
 			@Override
@@ -570,8 +570,8 @@ public class RangeList {
 				++nextValue;
 				if (nextValue > secondOfPair) {
 					++nextPairIndex;
-					if (nextPairIndex < RangeList.this.pairList.size()) {
-						long pair = RangeList.this.pairList.get(nextPairIndex);
+					if (nextPairIndex < RangeList.this.ranges.size()) {
+						long pair = RangeList.this.ranges.get(nextPairIndex);
 						nextValue = RangeList.getLeft(pair);
 						secondOfPair = RangeList.getRight(pair);
 					}
@@ -592,10 +592,10 @@ public class RangeList {
 	 */
 	public Iterator<Integer> iterator(final int firstValue, final int lastValue) {
 		// 用二分法找到迭代的起点
-		int left = -1, right = pairList.size();
+		int left = -1, right = ranges.size();
 		while (left + 1 < right) {
 			int middle = (left + right) / 2;
-			long middlePair = pairList.get(middle);
+			long middlePair = ranges.get(middle);
 			int first = getLeft(middlePair);
 			int second = getRight(middlePair);
 			if (firstValue < first) {
@@ -620,8 +620,8 @@ public class RangeList {
 				currentValue = -1;
 				nextValue = lastValue + 1;
 				nextPairIndex = startPairIndex;
-				if (nextPairIndex < RangeList.this.pairList.size()) {
-					long pair = RangeList.this.pairList.get(nextPairIndex);
+				if (nextPairIndex < RangeList.this.ranges.size()) {
+					long pair = RangeList.this.ranges.get(nextPairIndex);
 					int firstOfpair = RangeList.getLeft(pair);
 					secondOfPair = RangeList.getRight(pair);
 					nextValue = Math.max(firstOfpair, firstValue);
@@ -643,8 +643,8 @@ public class RangeList {
 				if (nextValue > secondOfPair) {
 					++nextPairIndex;
 					nextValue = lastValue + 1;
-					if (nextPairIndex < RangeList.this.pairList.size()) {
-						long pair = RangeList.this.pairList.get(nextPairIndex);
+					if (nextPairIndex < RangeList.this.ranges.size()) {
+						long pair = RangeList.this.ranges.get(nextPairIndex);
 						int firstOfpair = RangeList.getLeft(pair);
 						secondOfPair = RangeList.getRight(pair);
 						nextValue = firstOfpair;
@@ -666,10 +666,10 @@ public class RangeList {
 	 */
 	public Iterator<Integer> vacuum_iterator(final int firstValue, final int lastValue) {
 		// 二插查找法找到迭代起点
-		int left = -1, right = pairList.size();
+		int left = -1, right = ranges.size();
 		while (left + 1 < right) {
 			int middle = (left + right) / 2;
-			long pair = pairList.get(middle);
+			long pair = ranges.get(middle);
 			int first = getLeft(pair);
 			int second = getRight(pair);
 			if (firstValue < first) {
@@ -695,7 +695,7 @@ public class RangeList {
 				nextValue = lastValue + 1;
 				rightBoundPairIndex = startPairIndex;
 				if (rightBoundPairIndex - 1 >= 0) {
-					long pair = RangeList.this.pairList.get(rightBoundPairIndex - 1);
+					long pair = RangeList.this.ranges.get(rightBoundPairIndex - 1);
 					int second = getRight(pair);
 					nextValue = Math.max(second + 1, firstValue);
 				} else {
@@ -704,8 +704,8 @@ public class RangeList {
 
 				rightBound = lastValue + 1;
 				nextStart = lastValue + 1;
-				if (rightBoundPairIndex < RangeList.this.pairList.size()) {
-					long pair = RangeList.this.pairList.get(rightBoundPairIndex);
+				if (rightBoundPairIndex < RangeList.this.ranges.size()) {
+					long pair = RangeList.this.ranges.get(rightBoundPairIndex);
 					rightBound = getLeft(pair);
 					nextStart = getRight(pair);
 				}
@@ -729,8 +729,8 @@ public class RangeList {
 					++rightBoundPairIndex;
 					rightBound = lastValue + 1;
 					nextStart = lastValue + 1;
-					if (rightBoundPairIndex < RangeList.this.pairList.size()) {
-						long pair = RangeList.this.pairList.get(rightBoundPairIndex);
+					if (rightBoundPairIndex < RangeList.this.ranges.size()) {
+						long pair = RangeList.this.ranges.get(rightBoundPairIndex);
 						rightBound = getLeft(pair);
 						nextStart = getRight(pair);
 					}
@@ -750,14 +750,14 @@ public class RangeList {
 	 * 检查容器数据是否是一致的
 	 */
 	public boolean isValid() {
-		for (int i = 0, size = pairList.size(); i < size; ++i) {
-			long pair = pairList.get(i);
+		for (int i = 0, size = ranges.size(); i < size; ++i) {
+			long pair = ranges.get(i);
 			int left = getLeft(pair);
 			int right = getRight(pair);
 			if (left > right)
 				return false;
 			if (i != 0) {
-				long bpair = pairList.get(i - 1);
+				long bpair = ranges.get(i - 1);
 				int bright = getRight(bpair);
 				if (left - 1 <= bright)
 					return false;
@@ -769,7 +769,7 @@ public class RangeList {
 	@Override
 	public RangeList clone() {
 		RangeList l = new RangeList();
-		l.pairList = pairList.clone();
+		l.ranges = ranges.clone();
 		return l;
 	}
 
@@ -777,8 +777,8 @@ public class RangeList {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("[");
-		for (int i = 0, size = pairList.size(); i < size; ++i) {
-			long pair = pairList.get(i);
+		for (int i = 0, size = ranges.size(); i < size; ++i) {
+			long pair = ranges.get(i);
 			int first = getLeft(pair);
 			int second = getRight(pair);
 			if (first == second)
