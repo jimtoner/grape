@@ -1,0 +1,115 @@
+package grape.container.binarytree;
+
+import static org.junit.Assert.assertEquals;
+import grape.container.binarytree.BinaryTree.InorderTraversalIterator;
+import grape.container.binarytree.BinaryTree.InorderTraversalReverseIterator;
+import grape.container.binarytree.BinaryTree.PostorderTraversalIterator;
+import grape.container.binarytree.BinaryTree.PostorderTraversalReverseIterator;
+import grape.container.binarytree.BinaryTree.PreorderTraversalIterator;
+import grape.container.binarytree.BinaryTree.PreorderTraversalReverseIterator;
+
+import java.util.Iterator;
+
+import org.junit.Test;
+
+public class BinaryTreeTest {
+
+	static class Node implements BinarySearchTreeNode {
+
+		int value;
+		Node parent, left, right;
+
+		public Node(int v) {
+			value = v;
+		}
+
+		@Override
+		public Node getParent() {
+			return parent;
+		}
+
+		@Override
+		public void setParent(BinaryTreeNode p) {
+			parent = (Node) p;
+		}
+
+		@Override
+		public Node getLeftChild() {
+			return left;
+		}
+
+		@Override
+		public void setLeftChild(BinaryTreeNode l) {
+			left = (Node) l;
+		}
+
+		@Override
+		public Node getRightChild() {
+			return right;
+		}
+
+		@Override
+		public void setRightChild(BinaryTreeNode r) {
+			right = (Node) r;
+		}
+
+		@Override
+		public int compareTo(Object o) {
+			if (!(o instanceof Node))
+				throw new IllegalArgumentException();
+			Node n = (Node) o;
+			return value - n.value;
+		}
+	}
+
+	static Node buildTree() {
+        // 构建这样一颗树
+        //       4
+        //     /   \
+        //    2     6
+        //   / \   / \
+        //  1   3 5   7
+        //
+        Node root = null;
+        int[] nodes = {4, 2, 6, 1, 3, 5, 7 };
+        for (int i = 0; i < 7; ++i)
+            root = (Node) BinarySearchTree.insert(root, new Node(nodes[i]));
+        return root;
+    }
+
+	void checkIterator(Iterator<BinaryTreeNode> iter, int[] expected) {
+		int i = 0;
+		while (iter.hasNext()) {
+			Node n = (Node) iter.next();
+			assertEquals(expected[i++], n.value);
+		}
+		assertEquals(i, expected.length);
+	}
+
+	@Test
+	public void testIterator() {
+		Node root = buildTree();
+
+		// 中序遍历
+		Iterator<BinaryTreeNode> iter = new InorderTraversalIterator(root);
+		checkIterator(iter, new int[] {1, 2, 3, 4, 5, 6, 7});
+
+		iter = new InorderTraversalReverseIterator(root);
+		checkIterator(iter, new int[] {7, 6, 5, 4, 3, 2, 1});
+
+		// 先序遍历
+		iter = new PreorderTraversalIterator(root);
+		checkIterator(iter, new int[] {4, 2, 1, 3, 6, 5, 7});
+
+		iter = new PreorderTraversalReverseIterator(root);
+		checkIterator(iter, new int[] {7, 5, 6, 3, 1, 2, 4});
+
+		// 后序遍历
+		iter = new PostorderTraversalIterator(root);
+		checkIterator(iter, new int[] {1, 3, 2, 5, 7, 6, 4});
+
+		iter = new PostorderTraversalReverseIterator(root);
+		checkIterator(iter, new int[] {4, 6, 7, 5, 2, 3, 1});
+	}
+
+}
