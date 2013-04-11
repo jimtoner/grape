@@ -162,11 +162,11 @@ public class IndexedRangeList implements Cloneable, Serializable {
 	 * 添加值
 	 */
 	public void addValue(int value) {
-		addValueRange(value, 1);
+		addValueRange(value, value);
 	}
 
 	public void removeValue(int value) {
-		removeValueRange(value, 1);
+		removeValueRange(value, value);
 	}
 
 	/**

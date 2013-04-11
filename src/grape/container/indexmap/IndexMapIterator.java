@@ -2,6 +2,9 @@ package grape.container.indexmap;
 
 import java.util.Iterator;
 
+/**
+ * {@link SparseIndexMap} 的迭代器
+ */
 public class IndexMapIterator <T> implements Iterator<T> {
 
 	final SparseIndexMap<T> map;
