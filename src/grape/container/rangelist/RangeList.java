@@ -143,30 +143,27 @@ public class RangeList {
 	/**
 	 * 添加
 	 */
-	public void add(int value) {
-		addRange(value, value);
+	public void addValue(int value) {
+		addValueRange(value, value);
 	}
 
 	/**
 	 * 删除
 	 */
-	public void remove(int value) {
-		removeRange(value, 1);
+	public void removeValue(int value) {
+		removeValueRange(value, value);
 	}
 
 	/**
 	 * 添加行范围(取并集)
 	 */
-	public void addRange(int start, int count) {
-		if (count < 0)
+	public void addValueRange(int firstValue, int lastValue) {
+		if (firstValue > lastValue)
 			throw new IllegalArgumentException();
-		else if (count == 0)
-			return;
 
 		// 对空容器优化
-		int last = start + count - 1;
 		if (ranges.size() == 0) {
-			ranges.add(makeRange(start, last));
+			ranges.add(makeRange(firstValue, lastValue));
 			return;
 		}
 
@@ -174,13 +171,13 @@ public class RangeList {
 		long pair = ranges.get(0);
 		int left = getLeft(pair);
 		int right = getRight(pair);
-		if (last + 1 < left) {
-			ranges.add(0, makeRange(start, last));
+		if (lastValue + 1 < left) {
+			ranges.add(0, makeRange(firstValue, lastValue));
 			return;
-		} else if (last <= right) {
-			if (start >= left)
+		} else if (lastValue <= right) {
+			if (firstValue >= left)
 				return;
-			ranges.set(0, makeRange(start, right));
+			ranges.set(0, makeRange(firstValue, right));
 			return;
 		}
 
@@ -188,45 +185,42 @@ public class RangeList {
 		pair = ranges.get(ranges.size() - 1);
 		left = getLeft(pair);
 		right = getRight(pair);
-		if (start - 1 > right) {
-			ranges.add(makeRange(start, last));
+		if (firstValue - 1 > right) {
+			ranges.add(makeRange(firstValue, lastValue));
 			return;
-		} else if (start >= left) {
-			if (last <= right)
+		} else if (firstValue >= left) {
+			if (lastValue <= right)
 				return;
-			ranges.set(ranges.size() - 1, makeRange(left, last));
+			ranges.set(ranges.size() - 1, makeRange(left, lastValue));
 			return;
 		}
 
 		// 二分查找法确定可以合并的 range 范围
-		int i1 = binarySearch(start - 1), i2 = binarySearch(start + count);
+		int i1 = binarySearch(firstValue - 1), i2 = binarySearch(lastValue + 1);
 		if (i1 < 0)
 			i1 = -i1 - 1;
 		if (i2 < 0)
 			i2 = -i2 - 2;
 
 		if (i1 <= i2) {
-			int min_left = Math.min(start, getLeft(ranges.get(i1)));
-			int max_right = Math.max(start + count - 1, getRight(ranges.get(i2)));
+			int min_left = Math.min(firstValue, getLeft(ranges.get(i1)));
+			int max_right = Math.max(lastValue, getRight(ranges.get(i2)));
 			ranges.removeRange(i1, i2 + 1);
 			ranges.add(i1, makeRange(min_left, max_right));
 		} else {
-			ranges.add(i1, makeRange(start, start + count - 1));
+			ranges.add(i1, makeRange(firstValue, lastValue));
 		}
 	}
 
 	/**
 	 * 清除一个值范围
 	 */
-	public void removeRange(int start, int count) {
-		if (count < 0)
+	public void removeValueRange(int firstValue, int lastValue) {
+		if (firstValue > lastValue)
 			throw new IllegalArgumentException();
-		else if (count == 0)
-			return;
 
 		// 二分查找法确定范围
-		int last = start + count - 1;
-		int i1 = binarySearch(start), i2 = binarySearch(last);
+		int i1 = binarySearch(firstValue), i2 = binarySearch(lastValue);
 		if (i1 < 0)
 			i1 = -i1 - 1;
 		if (i2 < 0)
@@ -235,15 +229,15 @@ public class RangeList {
 			long pair = ranges.get(i1);
 			int left = getLeft(pair);
 			int right = getRight(pair);
-			if (left < start) {
-				ranges.set(i1, makeRange(left, start - 1));
+			if (left < firstValue) {
+				ranges.set(i1, makeRange(left, firstValue - 1));
 				++i1;
 			}
 			pair = ranges.get(i2);
 			left = getLeft(pair);
 			right = getRight(pair);
-			if (right > last) {
-				ranges.set(i2, makeRange(start + count, right));
+			if (right > lastValue) {
+				ranges.set(i2, makeRange(lastValue + 1, right));
 				--i2;
 			}
 			if (i1 <= i2)
@@ -253,18 +247,18 @@ public class RangeList {
 			long pair = ranges.get(i1);
 			int left = getLeft(pair);
 			int right = getRight(pair);
-			if (start <= left && last >= right) {
+			if (firstValue <= left && lastValue >= right) {
 				ranges.remove(i1);
 				return;
-			} else if (start > left && last < right) {
-				ranges.add(i1 + 1, makeRange(last + 1, right));
-				ranges.set(i1, makeRange(left, start - 1));
+			} else if (firstValue > left && lastValue < right) {
+				ranges.add(i1 + 1, makeRange(lastValue + 1, right));
+				ranges.set(i1, makeRange(left, firstValue - 1));
 				return;
-			} else if (start <= left) {
-				ranges.set(i1, makeRange(last + 1, right));
+			} else if (firstValue <= left) {
+				ranges.set(i1, makeRange(lastValue + 1, right));
 				return;
 			} else {
-				ranges.set(i1, makeRange(left, start - 1));
+				ranges.set(i1, makeRange(left, firstValue - 1));
 				return;
 			}
 		}
@@ -759,7 +753,7 @@ public class RangeList {
 			if (i != 0) {
 				long bpair = ranges.get(i - 1);
 				int bright = getRight(bpair);
-				if (left - 1 <= bright)
+				if (left <= bright + 1)
 					return false;
 			}
 		}

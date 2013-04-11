@@ -16,34 +16,46 @@ public class IndexedRangeList {
 
 	private static class Range {
 		int index; // 第一个 value 的索引
-		int valueStart; // 第一个 value
-		int valueCount; // value 数目
+		int first, last; // 第一个和最后一个元素，闭区间
 
-		public Range(int index, int valueStart, int valueCount) {
+		public Range(int index, int first, int last) {
 			this.index = index;
-			this.valueStart = valueStart;
-			this.valueCount = valueCount;
+			this.first = first;
+			this.last = last;
 		}
 
 		public int getFirstValue() {
-			return valueStart;
+			return first;
 		}
 
 		public int getLastValue() {
-			return valueStart + valueCount - 1;
+			return last;
+		}
+
+		public int getFirstIndex() {
+			return index;
+		}
+
+		public int getLastIndex() {
+			return index + (last - first);
+		}
+
+		@SuppressWarnings("unused")
+		public int length() {
+			return last - first + 1;
 		}
 
 		@Override
 		public Range clone() {
-			return new Range(index, valueStart, valueCount);
+			return new Range(index, first, last);
 		}
 
 		@Override
 		public String toString() {
-			if (valueCount == 1)
-				return Integer.toString(valueStart);
-			return "(" + Integer.toString(getFirstValue()) + "," +
-				Integer.toString(getLastValue()) + ")";
+			if (first == last)
+				return Integer.toString(first);
+			return "(" + Integer.toString(first) + "," +
+				Integer.toString(last) + ")";
 		}
 	}
 
@@ -74,8 +86,7 @@ public class IndexedRangeList {
 	public int size() {
 		if (ranges.size() == 0)
 			return 0;
-		Range r = ranges.get(ranges.size() - 1);
-		return r.index + r.valueCount;
+		return ranges.get(ranges.size() - 1).getLastIndex() + 1;
 	}
 
 	public boolean isEmpty() {
@@ -94,12 +105,12 @@ public class IndexedRangeList {
 		while (left + 1 < right) {
 			int middle = (left + right) / 2;
 			Range r = ranges.get(middle);
-			if (r.index + r.valueCount <= index)
+			if (r.getLastIndex() < index)
 				left = middle;
-			else if (r.index > index)
+			else if (r.getFirstIndex() > index)
 				right = middle;
 			else
-				return r.valueStart + (index - r.index);
+				return r.getFirstValue() + (index - r.getFirstIndex());
 		}
 		throw new IndexOutOfBoundsException();
 	}
@@ -123,18 +134,18 @@ public class IndexedRangeList {
 		if (location < 0)
 			return -1;
 		Range r = ranges.get(location);
-		return r.index + (value - r.valueStart);
+		return r.getFirstIndex() + (value - r.getFirstValue());
 	}
 
 	/**
 	 * 添加值
 	 */
-	public void add(int value) {
-		addRange(value, 1);
+	public void addValue(int value) {
+		addValueRange(value, 1);
 	}
 
-	public void remove(int value) {
-		removeRange(value, 1);
+	public void removeValue(int value) {
+		removeValueRange(value, 1);
 	}
 
 	/**
@@ -150,7 +161,7 @@ public class IndexedRangeList {
 				r.index = 0;
 			} else {
 				Range before = ranges.get(locationStart + i - 1);
-				r.index = before.index + before.valueCount;
+				r.index = before.getLastIndex() + 1;
 			}
 		}
 	}
@@ -183,62 +194,56 @@ public class IndexedRangeList {
 	/**
 	 * 添加一个值范围
 	 */
-	public void addRange(int start, int count) {
-		if (count < 0)
+	public void addValueRange(int firstValue, int lastValue) {
+		if (firstValue > lastValue)
 			throw new IllegalArgumentException();
-		else if (count == 0)
-			return;
 
 		// 对空容器优化
 		if (ranges.size() == 0) {
-			ranges.add(new Range(0, start, count));
+			ranges.add(new Range(0, firstValue, lastValue));
 			return;
 		}
 
 		// 对头部插入优化
 		Range r = ranges.get(0);
-		int last = start + count - 1;
-		if (last + 1 < r.getFirstValue()) {
-			ranges.add(0, new Range(0, start, count));
+		if (lastValue + 1 < r.getFirstValue()) {
+			ranges.add(0, new Range(0, firstValue, lastValue));
 			updateIndex(1);
 			return;
-		} else if (last <= r.getLastValue()) {
-			if (start >= r.getFirstValue())
+		} else if (lastValue <= r.getLastValue()) {
+			if (firstValue >= r.getFirstValue())
 				return;
-			int x = r.getFirstValue() - start;
-			r.valueStart = start;
-			r.valueCount += x;
+			r.first = firstValue;
 			updateIndex(1);
 			return;
 		}
 
 		// 对尾部插入优化
 		r = ranges.get(ranges.size() - 1);
-		if (start - 1 > r.getLastValue()) {
-			ranges.add(new Range(r.index + r.valueCount, start, count));
+		if (firstValue - 1 > r.getLastValue()) {
+			ranges.add(new Range(r.getLastIndex() + 1, firstValue, lastValue));
 			return;
-		} else if (start >= r.getFirstValue()) {
-			if (last <= r.getLastValue())
+		} else if (firstValue >= r.getFirstValue()) {
+			if (lastValue <= r.getLastValue())
 				return;
-			int x = last - r.getLastValue();
-			r.valueCount += x;
+			r.last = lastValue;
 			return;
 		}
 
 		// 二分查找法确定可以合并的 range 范围
-		int i1 = binarySearch(start - 1), i2 = binarySearch(start + count);
+		int i1 = binarySearch(firstValue - 1), i2 = binarySearch(lastValue + 1);
 		if (i1 < 0)
 			i1 = -i1 - 1;
 		if (i2 < 0)
 			i2 = -i2 - 2;
 
 		if (i1 <= i2) {
-			int min_start = Math.min(start, ranges.get(i1).getFirstValue());
-			int max_count = Math.max(start + count, ranges.get(i2).getLastValue() + 1) - min_start;
+			int min_first = Math.min(firstValue, ranges.get(i1).getFirstValue());
+			int max_last = Math.max(lastValue, ranges.get(i2).getLastValue());
 			ranges.subList(i1, i2 + 1).clear();
-			ranges.add(i1, new Range(0, min_start, max_count));
+			ranges.add(i1, new Range(0, min_first, max_last));
 		} else {
-			ranges.add(i1, new Range(0, start, count));
+			ranges.add(i1, new Range(0, firstValue, lastValue));
 		}
 		updateIndex(i1);
 	}
@@ -246,29 +251,25 @@ public class IndexedRangeList {
 	/**
 	 * 清除一个值范围
 	 */
-	public void removeRange(int start, int count) {
-		if (count < 0)
+	public void removeValueRange(int firstValue, int lastValue) {
+		if (firstValue > lastValue)
 			throw new IllegalArgumentException();
-		else if (count == 0)
-			return;
 
 		// 二分查找法确定范围
-		int last = start + count - 1;
-		int i1 = binarySearch(start), i2 = binarySearch(last);
+		int i1 = binarySearch(firstValue), i2 = binarySearch(lastValue);
 		if (i1 < 0)
 			i1 = -i1 - 1;
 		if (i2 < 0)
 			i2 = -i2 - 2;
 		if (i1 < i2) {
 			Range r = ranges.get(i1);
-			if (r.valueStart < start) {
-				r.valueCount = start - r.valueStart;
+			if (r.getFirstValue() < firstValue) {
+				r.last = firstValue - 1;
 				++i1;
 			}
 			r = ranges.get(i2);
-			if (r.getLastValue() > last) {
-				r.valueCount = r.getLastValue() - last;
-				r.valueStart = start + count;
+			if (r.getLastValue() > lastValue) {
+				r.first = lastValue + 1;
 				--i2;
 			}
 			if (i1 <= i2)
@@ -277,22 +278,21 @@ public class IndexedRangeList {
 			return;
 		} else if (i1 == i2) {
 			Range r = ranges.get(i1);
-			if (start <= r.getFirstValue() && last >= r.getLastValue()) {
+			if (firstValue <= r.getFirstValue() && lastValue >= r.getLastValue()) {
 				ranges.remove(i1);
 				updateIndex(i1);
 				return;
-			} else if (start > r.getFirstValue() && last < r.getLastValue()) {
-				ranges.add(i1 + 1, new Range(0, last + 1, r.getLastValue() - last));
-				r.valueCount = start - r.valueStart;
+			} else if (firstValue > r.getFirstValue() && lastValue < r.getLastValue()) {
+				ranges.add(i1 + 1, new Range(0, lastValue + 1, r.getLastValue()));
+				r.last = firstValue - 1;
 				updateIndex(i1);
 				return;
-			} else if (start <= r.getFirstValue()) {
-				r.valueCount = r.getLastValue() - last;
-				r.valueStart = last + 1;
+			} else if (firstValue <= r.getFirstValue()) {
+				r.first = lastValue + 1;
 				updateIndex(i1);
 				return;
 			} else {
-				r.valueCount = start - r.valueStart;
+				r.last = firstValue - 1;
 				updateIndex(i1 + 1);
 				return;
 			}
@@ -363,11 +363,11 @@ public class IndexedRangeList {
 				if (value1 < value2) {
 					state = 2;
 					++index1;
-					ret.ranges.add(new Range(0, firstOfInteract, value1 - firstOfInteract + 1));
+					ret.ranges.add(new Range(0, firstOfInteract, value1));
 				} else {
 					state = 1;
 					++index2;
-					ret.ranges.add(new Range(0, firstOfInteract, value2 - firstOfInteract + 1));
+					ret.ranges.add(new Range(0, firstOfInteract, value2));
 				}
 				break;
 
@@ -518,11 +518,11 @@ public class IndexedRangeList {
 				if (value1 < value2) {
 					state = 0;
 					++index1;
-					ret.ranges.add(new Range(0, firstOfRemainder, value1 - firstOfRemainder + 1));
+					ret.ranges.add(new Range(0, firstOfRemainder, value1));
 				} else {
 					state = 3;
 					++index2;
-					ret.ranges.add(new Range(0, firstOfRemainder, value2 - 1 - firstOfRemainder + 1));
+					ret.ranges.add(new Range(0, firstOfRemainder, value2 - 1));
 				}
 				break;
 
@@ -783,7 +783,7 @@ public class IndexedRangeList {
 	public boolean isValid() {
 		for (int i = 0, size = ranges.size(); i < size; ++i) {
 			Range r = ranges.get(i);
-			if (r.valueCount <= 0)
+			if (r.first > r.last)
 				return false;
 
 			if (i == 0) {
@@ -791,9 +791,9 @@ public class IndexedRangeList {
 					return false;
 			} else {
 				Range rr = ranges.get(i - 1);
-				if (r.index != rr.index + rr.valueCount)
+				if (r.index != rr.index + (rr.last - rr.first + 1))
 					return false;
-				if (r.valueStart <= rr.valueStart + rr.valueCount)
+				if (r.first <= rr.last + 1)
 					return false;
 			}
 		}
@@ -814,13 +814,7 @@ public class IndexedRangeList {
 		sb.append("[");
 		for (int i = 0, size = ranges.size(); i < size; ++i) {
 			Range pair = ranges.get(i);
-			int first = pair.getFirstValue();
-			int second = pair.getLastValue();
-			if (first == second)
-				sb.append(Integer.toString(first));
-			else
-				sb.append("(").append(Integer.toString(first)).append(",")
-				.append(Integer.toString(second)).append(")");
+			sb.append(pair.toString());
 			if (i != size - 1)
 				sb.append(",");
 		}
