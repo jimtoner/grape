@@ -50,41 +50,8 @@ public class RangeList {
 		return getRight(ranges.get(ranges.size() - 1));
 	}
 
-	/**
-	 * 获取元素数
-	 * NOTE: <b>需要线性遍历元素</b>
-	 */
-	public int size() {
-		int ret = 0;
-		for (int i = 0, size = ranges.size(); i < size; ++i) {
-			long pair = ranges.get(i);
-			ret += getRight(pair) - getLeft(pair) + 1;
-		}
-		return ret;
-	}
-
 	public boolean isEmpty() {
 		return ranges.isEmpty();
-	}
-
-	/**
-	 * 获取指定位置的元素
-	 * NOTE: <b>需要线性遍历元素</b>
-	 */
-	public int get(int index) {
-		if (index < 0)
-			throw new IndexOutOfBoundsException();
-
-		for (int i = 0, size = ranges.size(); i < size; ++i) {
-			long pair = ranges.get(i);
-			int left = getLeft(pair);
-			int len = getRight(pair) - left + 1;
-			if (index < len)
-				return left + index;
-			else
-				index -= len;
-		}
-		throw new IndexOutOfBoundsException();
 	}
 
 	/**
@@ -117,27 +84,6 @@ public class RangeList {
 				return middle;
 		}
 		return -(right + 1);
-	}
-
-	/**
-	 * 查找指定的值的索引位置
-	 * NOTE: <b>需要线性遍历元素</b>
-	 *
-	 * @return -1, 如果没有找到
-	 */
-	public int indexOf(int value) {
-		int index = 0;
-		for (int i = 0, size = ranges.size(); i < size; ++i) {
-			long pair = ranges.get(i);
-			int left = getLeft(pair), right = getRight(pair);
-			if (value < left)
-				return -1;
-			else if (value <= right)
-				return index + value - left;
-			else
-				index += right - left + 1;
-		}
-		return -1;
 	}
 
 	/**
