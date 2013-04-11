@@ -1,8 +1,6 @@
 package grape.container.deqlist;
 
-import static org.junit.Assert.assertEquals;
-import grape.container.deqlist.ArrayDequeList;
-import grape.container.deqlist.DequeList;
+import static org.junit.Assert.*;
 
 import org.junit.Test;
 
@@ -84,5 +82,20 @@ public class ArrayDequeListTest {
 		t = l.clone();
 		t.removeRange(2, 4);
 		check(t, new int[] {-1, -2, 2});
+	}
+
+	@Test
+	public void testClear() {
+		ArrayDequeList<Integer> l = new ArrayDequeList<Integer>();
+		l.clear();
+		assertEquals(0, l.size());
+		assertTrue(l.isEmpty());
+
+		l = build(new int[] {-1, -2, 1, -3, 2});
+		assertEquals(5, l.size());
+		assertFalse(l.isEmpty());
+		l.clear();
+		assertEquals(0, l.size());
+		assertTrue(l.isEmpty());
 	}
 }

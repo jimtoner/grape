@@ -150,7 +150,7 @@ public abstract class AbstractDequeList<E> extends AbstractList<E>
 
 	@Override
 	public void clear() {
-		while (isEmpty())
+		while (!isEmpty())
 			poll();
 	}
 
