@@ -25,6 +25,12 @@ public class BinaryTree {
 		BinaryTreeNode next;
 
 		public InorderTraversalIterator(BinaryTreeNode root_of_sub_tree) {
+			if (root_of_sub_tree == null) {
+				parent_of_sub_tree = null;
+				next = null;
+				return;
+			}
+
 			parent_of_sub_tree = root_of_sub_tree.getParent();
 	        next = root_of_sub_tree;
 	        while (null != next.getLeftChild())
@@ -87,6 +93,12 @@ public class BinaryTree {
 		BinaryTreeNode next;
 
 		public InorderTraversalReverseIterator(BinaryTreeNode root_of_sub_tree) {
+			if (root_of_sub_tree == null) {
+				parent_of_sub_tree = null;
+				next = null;
+				return;
+			}
+
 	        parent_of_sub_tree = root_of_sub_tree.getParent();
 	        next = root_of_sub_tree;
 	        while (null != next.getRightChild())
@@ -149,6 +161,12 @@ public class BinaryTree {
 		BinaryTreeNode next;
 
 		public PreorderTraversalIterator(BinaryTreeNode root_of_sub_tree) {
+			if (root_of_sub_tree == null) {
+				parent_of_sub_tree = null;
+				next = null;
+				return;
+			}
+
 	        parent_of_sub_tree = root_of_sub_tree.getParent();
 	        next = root_of_sub_tree;
 		}
@@ -210,6 +228,12 @@ public class BinaryTree {
 		BinaryTreeNode next;
 
 		public PreorderTraversalReverseIterator(BinaryTreeNode root_of_sub_tree) {
+			if (root_of_sub_tree == null) {
+				parent_of_sub_tree = null;
+				next = null;
+				return;
+			}
+
 			parent_of_sub_tree = root_of_sub_tree.getParent();
 			next = root_of_sub_tree;
 	        while (null != next.getRightChild())
@@ -273,6 +297,12 @@ public class BinaryTree {
 		BinaryTreeNode next;
 
 		public PostorderTraversalIterator(BinaryTreeNode root_of_sub_tree) {
+			if (root_of_sub_tree == null) {
+				parent_of_sub_tree = null;
+				next = null;
+				return;
+			}
+
 			parent_of_sub_tree = root_of_sub_tree.getParent();
 			next = root_of_sub_tree;
 	        while (null != next.getLeftChild())
@@ -337,6 +367,12 @@ public class BinaryTree {
 		BinaryTreeNode next;
 
 		public PostorderTraversalReverseIterator(BinaryTreeNode root_of_sub_tree) {
+			if (root_of_sub_tree == null) {
+				parent_of_sub_tree = null;
+				next = null;
+				return;
+			}
+
 			parent_of_sub_tree = root_of_sub_tree.getParent();
 			next = root_of_sub_tree;
 		}
