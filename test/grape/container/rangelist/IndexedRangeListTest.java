@@ -2,6 +2,8 @@ package grape.container.rangelist;
 
 import static org.junit.Assert.*;
 
+import java.util.Iterator;
+
 import org.junit.Test;
 
 public class IndexedRangeListTest {
@@ -162,5 +164,47 @@ public class IndexedRangeListTest {
 		IndexedRangeList rs = IndexedRangeList.remainder(x, y);
 		assertTrue(rs.isValid());
 		assertEquals("[1,14]", rs.toString());
+	}
+
+	private void checkIter(Iterator<Integer> iter, int[] expected) {
+		int i = 0;
+		while (iter.hasNext()) {
+			int v = iter.next();
+			assertEquals(expected[i++], v);
+		}
+		assertEquals(expected.length, i);
+	}
+
+	@Test
+	public void testIterator() {
+		IndexedRangeList x = new IndexedRangeList();
+		x.addValueRange(1, 3);
+		x.addValueRange(5, 10);
+		x.addValueRange(13, 15);
+
+		Iterator<Integer> iter = x.iterator();
+		checkIter(iter, new int[]{1,2,3, 5,6,7,8,9,10, 13,14,15});
+	}
+
+	@Test
+	public void testRangeIterator() {
+		IndexedRangeList x = new IndexedRangeList();
+		x.addValueRange(1, 3);
+		x.addValueRange(5, 10);
+		x.addValueRange(13, 15);
+
+		Iterator<Integer> iter = x.iterator(2, 12);
+		checkIter(iter, new int[]{2,3, 5,6,7,8,9,10});
+	}
+
+	@Test
+	public void testVacuumIter() {
+		IndexedRangeList x = new IndexedRangeList();
+		x.addValueRange(1, 3);
+		x.addValueRange(5, 10);
+		x.addValueRange(13, 15);
+
+		Iterator<Integer> iter = x.vacuum_iterator(4, 14);
+		checkIter(iter, new int[]{4,11,12});
 	}
 }
