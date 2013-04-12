@@ -1,4 +1,4 @@
-package grape.container.binarytree;
+package grape.container.binarytree.node;
 
 /**
  * 二叉查找树节点

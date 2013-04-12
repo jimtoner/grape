@@ -1,5 +1,7 @@
 package grape.container.binarytree;
 
+import grape.container.binarytree.node.BinaryTreeNode;
+
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 

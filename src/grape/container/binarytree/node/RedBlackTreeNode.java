@@ -1,4 +1,4 @@
-package grape.container.binarytree;
+package grape.container.binarytree.node;
 
 /**
  * 红黑树节点
