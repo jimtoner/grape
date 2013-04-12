@@ -108,4 +108,6 @@ public interface RangeContainer {
 	 * 按序迭代所有的 range
 	 */
 	Iterator<Range> rangeIterator();
+	Iterator<Range> rangeIterator(int firstValue, int lastValue);
+	Iterator<Range> rangeIterator(Range valueRange);
 }

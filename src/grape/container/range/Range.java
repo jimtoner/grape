@@ -31,6 +31,10 @@ public class Range {
 		return lastValue - firstValue + 1;
 	}
 
+	public boolean contains(int value) {
+		return firstValue <= value & value <= lastValue;
+	}
+
 	/**
 	 * 取交集
 	 *

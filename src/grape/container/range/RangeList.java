@@ -8,7 +8,6 @@ import java.util.NoSuchElementException;
 
 /**
  * 用来记录一系列连续或者离散的整数，例如
- * 行号 1 2 3 6 8 9 将被整合为
  * (1,3) (6,6) (8,9)
  *
  * @author jingqi
@@ -193,8 +192,7 @@ public class RangeList extends AbstractRangeContainer implements RangeContainer,
 		ranges.clear();
 	}
 
-	@Override
-	public Iterator<Integer> iterator() {
+	public Iterator<Integer> iterator1() {
 		return new Iterator<Integer>() {
 
 			int currentValue;
@@ -243,8 +241,7 @@ public class RangeList extends AbstractRangeContainer implements RangeContainer,
 		};
 	}
 
-	@Override
-	public Iterator<Integer> iterator(final int firstValue, final int lastValue) {
+	public Iterator<Integer> iterator1(final int firstValue, final int lastValue) {
 		// 用二分法找到迭代的起点
 		int left = -1, right = ranges.size();
 		while (left + 1 < right) {
@@ -315,8 +312,7 @@ public class RangeList extends AbstractRangeContainer implements RangeContainer,
 		};
 	}
 
-	@Override
-	public Iterator<Integer> vacuumIterator(final int firstValue, final int lastValue) {
+	public Iterator<Integer> vacuumIterator1(final int firstValue, final int lastValue) {
 		// 二插查找法找到迭代起点
 		int left = -1, right = ranges.size();
 		while (left + 1 < right) {
@@ -420,6 +416,43 @@ public class RangeList extends AbstractRangeContainer implements RangeContainer,
 			@Override
 			public void remove() {
 				ranges.remove(location--);
+			}
+		};
+	}
+
+	@Override
+	public Iterator<Range> rangeIterator(final int firstValue, final int lastValue) {
+		return new Iterator<Range>() {
+
+			int location;
+			int lastLocation;
+
+			{
+				location = binarySearch(firstValue);
+				if (location < 0)
+					location = -location - 1;
+				lastLocation = binarySearch(lastValue);
+				if (lastLocation < 0)
+					lastLocation = -lastLocation - 2;
+			}
+
+			@Override
+			public boolean hasNext() {
+				return location <= lastLocation;
+			}
+
+			@Override
+			public Range next() {
+				if (!hasNext())
+					throw new NoSuchElementException();
+				long range = ranges.get(location++);
+				return new Range(getLeft(range), getRight(range));
+			}
+
+			@Override
+			public void remove() {
+				ranges.remove(location--);
+				--lastLocation;
 			}
 		};
 	}

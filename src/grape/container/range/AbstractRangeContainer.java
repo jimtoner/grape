@@ -1,6 +1,7 @@
 package grape.container.range;
 
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 
 /**
@@ -180,6 +181,110 @@ public abstract class AbstractRangeContainer implements RangeContainer {
 	}
 
 	@Override
+	public Iterator<Integer> iterator() {
+		return new Iterator<Integer>() {
+
+			Iterator<Range> iter;
+			Range nextRange;
+			int nextValue;
+
+			{
+				iter = rangeIterator();
+				if (iter.hasNext()) {
+					nextRange = iter.next();
+					nextValue = nextRange.getFirstValue();
+				}
+			}
+
+			private void advance() {
+				++nextValue;
+				if (nextValue > nextRange.getLastValue()) {
+					if (iter.hasNext()) {
+						nextRange = iter.next();
+						nextValue = nextRange.getFirstValue();
+					} else {
+						nextRange = null;
+					}
+				}
+			}
+
+			@Override
+			public boolean hasNext() {
+				return nextRange != null;
+			}
+
+			@Override
+			public Integer next() {
+				if (!hasNext())
+					throw new NoSuchElementException();
+
+				int ret = nextValue;
+				advance();
+				return ret;
+			}
+
+			@Override
+			public void remove() {
+				throw new UnsupportedOperationException();
+			}
+		};
+	}
+
+	@Override
+	public Iterator<Integer> iterator(final int firstValue, final int lastValue) {
+
+		return new Iterator<Integer>() {
+
+			Iterator<Range> iter;
+			Range nextRange;
+			int nextValue;
+
+			{
+				iter = rangeIterator(firstValue, lastValue);
+				if (iter.hasNext()) {
+					nextRange = iter.next();
+					nextValue = Math.max(firstValue, nextRange.getFirstValue());
+				} else {
+					nextValue = lastValue + 1; // the end
+				}
+			}
+
+			private void advance() {
+				++nextValue;
+				if (nextValue > nextRange.getLastValue()) {
+					if (iter.hasNext()) {
+						nextRange = iter.next();
+						nextValue = nextRange.getFirstValue();
+					} else {
+						nextValue = lastValue + 1; // the end
+					}
+				}
+			}
+
+			@Override
+			public boolean hasNext() {
+				return nextValue <= lastValue;
+			}
+
+			@Override
+			public Integer next() {
+				if (!hasNext())
+					throw new NoSuchElementException();
+
+				int ret = nextValue;
+				advance();
+				return ret;
+			}
+
+			@Override
+			public void remove() {
+				throw new UnsupportedOperationException();
+
+			}
+		};
+	}
+
+	@Override
 	public Iterator<Integer> iterator(Range r) {
 		return iterator(r.getFirstValue(), r.getLastValue());
 	}
@@ -187,6 +292,60 @@ public abstract class AbstractRangeContainer implements RangeContainer {
 	@Override
 	public Iterator<Integer> vacuumIterator(Range r) {
 		return vacuumIterator(r.getFirstValue(), r.getLastValue());
+	}
+
+	@Override
+	public Iterator<Integer> vacuumIterator(final int firstValue, final int lastValue) {
+		return new Iterator<Integer>(){
+
+			Iterator<Range> iter;
+			Range nextRange;
+			int nextValue;
+
+			{
+				iter = rangeIterator(firstValue, lastValue);
+				if (iter.hasNext())
+					nextRange = iter.next();
+				nextValue = firstValue - 1;
+				advance();
+			}
+
+			@Override
+			public boolean hasNext() {
+				return nextValue <= lastValue;
+			}
+
+			private void advance() {
+				++nextValue;
+				if (nextRange == null)
+					return;
+				if (nextRange.contains(nextValue)) {
+					nextValue = nextRange.getLastValue() + 1;
+					if (iter.hasNext())
+						nextRange = iter.next();
+					else
+						nextRange = null;
+				}
+			}
+
+			@Override
+			public Integer next() {
+				if (!hasNext())
+					throw new NoSuchElementException();
+				int ret = nextValue;
+				advance();
+				return ret;
+			}
+
+			@Override
+			public void remove() {
+				throw new UnsupportedOperationException();
+			}};
+	}
+
+	@Override
+	public Iterator<Range> rangeIterator(Range r) {
+		return rangeIterator(r.getFirstValue(), r.getLastValue());
 	}
 
 	@Override
