@@ -104,6 +104,21 @@ public class BinarySearchTree {
     }
 
     /**
+     * 删除一个范围
+     */
+    public static BinarySearchTreeNode removeRange(BinarySearchTreeNode root, BinarySearchTreeNode first, BinarySearchTreeNode last) {
+    	BinarySearchTreeNode n = first;
+    	while (true) {
+    		BinarySearchTreeNode next = successor(n);
+    		root = remove(root, n);
+    		if (n == last)
+    			break;
+    		n = next;
+    	}
+    	return root;
+    }
+
+    /**
      * 找到最小数据所在的节点
      */
     public static BinarySearchTreeNode minimum(BinarySearchTreeNode sub_root) {

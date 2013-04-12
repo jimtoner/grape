@@ -12,12 +12,41 @@ public class RedBlackTree {
 
 	private RedBlackTree() {}
 
+	public static interface RedBlackTreeOperationListener {
+		/**
+		 * 节点被添加到了树上
+		 */
+		void attachedToTree(RedBlackTreeNode attached);
+
+		/**
+		 * 节点被从树上摘除
+		 * NOTE: 实际上可能是一个 “摘除-替换” 的过程，被替换的节点必然是 parent 或者其祖先
+		 *
+		 * @param parent 被摘除节点的父节点，如果为 null，说明根节点被摘除
+		 */
+		void disattachedFromTree(RedBlackTreeNode parent);
+
+		/**
+		 * 左旋转完成
+		 *
+		 * @param n 两个关键节点中的子节点
+		 */
+		void leftRotated(RedBlackTreeNode n);
+
+		/**
+		 * 右旋转完成
+		 *
+		 * @param n 两个关键节点中的子节点
+		 */
+		void rightRotated(RedBlackTreeNode n);
+	}
+
     /**
      * 插入新节点到红黑树
      *
      * @return 新的根
      */
-    public static RedBlackTreeNode insert(RedBlackTreeNode root, RedBlackTreeNode new_node) {
+    public static RedBlackTreeNode insert(RedBlackTreeNode root, RedBlackTreeNode new_node, RedBlackTreeOperationListener listener) {
     	RedBlackTreeNode parent = null;
         boolean insertToLeft = true;
         for (RedBlackTreeNode current = root; null != current; ) {
@@ -38,9 +67,11 @@ public class RedBlackTree {
             parent.setLeftChild(new_node);
         else
             parent.setRightChild(new_node);
-
         new_node.setRed(true);
-        root = _rb_insert_fixup(root, new_node);
+        if (listener != null)
+        	listener.attachedToTree(new_node);
+
+        root = _rb_insert_fixup(root, new_node, listener);
 
         return root;
     }
@@ -50,19 +81,22 @@ public class RedBlackTree {
      *
      * @return 新的根
      */
-    public static RedBlackTreeNode remove(RedBlackTreeNode root, RedBlackTreeNode to_be_del) {
+    public static RedBlackTreeNode remove(RedBlackTreeNode root, RedBlackTreeNode to_be_del, RedBlackTreeOperationListener listener) {
+    	// 找到要从树上移除的节点 escaper，其子节点个数必然小于等于1
         RedBlackTreeNode escaper = null;
         if (null == to_be_del.getLeftChild() || null == to_be_del.getRightChild())
             escaper = to_be_del;
         else
             escaper = (RedBlackTreeNode) BinarySearchTree.successor(to_be_del);
 
+        // 记录 escaper 的子树
         RedBlackTreeNode sublink = null;
         if (null != escaper.getLeftChild())
             sublink = (RedBlackTreeNode) escaper.getLeftChild();
         else
             sublink = (RedBlackTreeNode) escaper.getRightChild();
 
+        // 摘除 escaper
         RedBlackTreeNode sublink_parent = (RedBlackTreeNode) escaper.getParent();
         if (null != sublink)
             sublink.setParent(sublink_parent);
@@ -73,26 +107,52 @@ public class RedBlackTree {
             sublink_parent.setLeftChild(sublink);
         else
             sublink_parent.setRightChild(sublink);
+        if (listener != null)
+        	listener.disattachedFromTree(sublink_parent);
 
         final boolean red_escaper = escaper.isRed();
         if (escaper != to_be_del) {
-            // replace x with escaper
+        	// 用 escaper 置换 to_be_del
             escaper.setLeftChild(to_be_del.getLeftChild());
+            if (to_be_del.getLeftChild() != null)
+            	to_be_del.getLeftChild().setParent(escaper);
             escaper.setRightChild(to_be_del.getRightChild());
+            if (to_be_del.getRightChild() != null)
+            	to_be_del.getRightChild().setParent(escaper);
             escaper.setParent(to_be_del.getParent());
-            escaper.setRed(to_be_del.isRed());
-            if (null == to_be_del.getParent())
-                root = escaper;
+            if (to_be_del.getParent() == null)
+            	root = escaper;
             else if (to_be_del == to_be_del.getParent().getLeftChild())
             	to_be_del.getParent().setLeftChild(escaper);
             else
             	to_be_del.getParent().setRightChild(escaper);
+            escaper.setRed(to_be_del.isRed());
+
+            if (sublink_parent == to_be_del)
+            	sublink_parent = escaper;
         }
+        if (listener != null)
+        	listener.disattachedFromTree(sublink_parent);
 
         if (!red_escaper)
-            root = _rb_delete_fixup(root, sublink, sublink_parent);
+            root = _rb_delete_fixup(root, sublink, sublink_parent, listener);
 
         return root;
+    }
+
+    /**
+     * 删除一个范围
+     */
+    public static RedBlackTreeNode removeRange(RedBlackTreeNode root, RedBlackTreeNode first, RedBlackTreeNode last, RedBlackTreeOperationListener listener) {
+    	RedBlackTreeNode n = first;
+    	while (true) {
+    		RedBlackTreeNode next = (RedBlackTreeNode) BinarySearchTree.successor(n);
+    		root = remove(root, n, listener);
+    		if (n == last)
+    			break;
+    		n = next;
+    	}
+    	return root;
     }
 
     /**
@@ -151,7 +211,7 @@ public class RedBlackTree {
         return root;
     }
 
-    static RedBlackTreeNode _rb_insert_fixup(RedBlackTreeNode root, RedBlackTreeNode x) {
+    static RedBlackTreeNode _rb_insert_fixup(RedBlackTreeNode root, RedBlackTreeNode x, RedBlackTreeOperationListener listener) {
         while (null != x.getParent() && ((RedBlackTreeNode) x.getParent()).isRed()) {
         	RedBlackTreeNode parent = (RedBlackTreeNode) x.getParent();
             if (parent == parent.getParent().getLeftChild()) {
@@ -183,6 +243,8 @@ public class RedBlackTree {
                         //
                         x = parent;
                         root = _left_rotate(root, x);
+                        if (listener != null)
+                        	listener.leftRotated(x);
                     }
 
                     // case 3:
@@ -195,8 +257,11 @@ public class RedBlackTree {
                     //     [R]                               B
                     //
                     parent.setRed(false);
-                    ((RedBlackTreeNode) parent.getParent()).setRed(true);
-                    root = _right_rotate(root, (RedBlackTreeNode) parent.getParent());
+                    final RedBlackTreeNode xx = (RedBlackTreeNode) parent.getParent();
+                    xx.setRed(true);
+                    root = _right_rotate(root, xx);
+                    if (listener != null)
+                    	listener.rightRotated(xx);
                 }
             } else {
             	RedBlackTreeNode uncle = (RedBlackTreeNode) parent.getParent().getLeftChild();
@@ -227,6 +292,8 @@ public class RedBlackTree {
                         //
                         x = parent;
                         root = _right_rotate(root, x);
+                        if (listener != null)
+                        	listener.rightRotated(x);
                     }
 
                     // case 3:
@@ -239,8 +306,11 @@ public class RedBlackTree {
                     //            [R]                B
                     //
                     parent.setRed(false);
-                    ((RedBlackTreeNode) parent.getParent()).setRed(true);
-                    root = _left_rotate(root, (RedBlackTreeNode) parent.getParent());
+                    final RedBlackTreeNode xx = (RedBlackTreeNode) parent.getParent();
+                    xx.setRed(true);
+                    root = _left_rotate(root, xx);
+                    if (listener != null)
+                    	listener.leftRotated(xx);
                 }
             }
         }
@@ -248,7 +318,8 @@ public class RedBlackTree {
         return root;
     }
 
-    static RedBlackTreeNode _rb_delete_fixup(RedBlackTreeNode root, RedBlackTreeNode sublink, RedBlackTreeNode sublink_parent) {
+    static RedBlackTreeNode _rb_delete_fixup(RedBlackTreeNode root, RedBlackTreeNode sublink, RedBlackTreeNode sublink_parent,
+    		RedBlackTreeOperationListener listener) {
         while (sublink != root && (null == sublink || !sublink.isRed())) {
             if (sublink == sublink_parent.getLeftChild()) {
             	RedBlackTreeNode brother = (RedBlackTreeNode) sublink_parent.getRightChild();
@@ -266,6 +337,8 @@ public class RedBlackTree {
                     brother.setRed(false);
                     sublink_parent.setRed(true);
                     root = _left_rotate(root, sublink_parent);
+                    if (listener != null)
+                    	listener.leftRotated(sublink_parent);
                     brother = (RedBlackTreeNode) sublink_parent.getRightChild();
                 }
 
@@ -299,6 +372,8 @@ public class RedBlackTree {
                         ((RedBlackTreeNode) brother.getLeftChild()).setRed(false);
                         brother.setRed(true);
                         root = _right_rotate(root, brother);
+                        if (listener != null)
+                        	listener.rightRotated(brother);
                         brother = (RedBlackTreeNode) sublink_parent.getRightChild();
                     }
 
@@ -315,6 +390,8 @@ public class RedBlackTree {
                     sublink_parent.setRed(false);
                     ((RedBlackTreeNode) brother.getRightChild()).setRed(false);
                     root = _left_rotate(root, sublink_parent);
+                    if (listener != null)
+                    	listener.leftRotated(sublink_parent);
                     sublink = root; // end the loop
                     sublink_parent = null;
                }
@@ -334,6 +411,8 @@ public class RedBlackTree {
                     brother.setRed(false);
                     sublink_parent.setRed(true);
                     root = _right_rotate(root, sublink_parent);
+                    if (listener != null)
+                    	listener.rightRotated(sublink_parent);
                     brother = (RedBlackTreeNode) sublink_parent.getLeftChild();
                 }
 
@@ -367,6 +446,8 @@ public class RedBlackTree {
                         ((RedBlackTreeNode) brother.getRightChild()).setRed(false);
                         brother.setRed(true);
                         root = _left_rotate(root, brother);
+                        if (listener != null)
+                        	listener.leftRotated(brother);
                         brother = (RedBlackTreeNode) sublink_parent.getLeftChild();
                     }
 
@@ -383,12 +464,15 @@ public class RedBlackTree {
                     sublink_parent.setRed(false);
                     ((RedBlackTreeNode) brother.getLeftChild()).setRed(false);
                     root = _right_rotate(root, sublink_parent);
+                    if (listener != null)
+                    	listener.rightRotated(sublink_parent);
                     sublink = root; // end the loop
                     sublink_parent = null;
                 }
             }
         }
-        sublink.setRed(false);
+        if (sublink != null)
+        	sublink.setRed(false);
         return root;
     }
 }
