@@ -1,10 +1,11 @@
-package grape.container.rangelist;
+package grape.container.range;
 
 import grape.container.deqlist.ArrayDequeList;
 import grape.container.deqlist.DequeList;
 
 import java.io.Serializable;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * 存储一系列有序的范围，例如
@@ -13,11 +14,11 @@ import java.util.Iterator;
  * @author jingqi
  *
  */
-public class IndexedRangeList implements Cloneable, Serializable {
+public class IndexedRangeList extends AbstractRangeContainer implements IndexedRangeContainer, Cloneable, Serializable {
 
 	private static final long serialVersionUID = -3699871549717518344L;
 
-	static class IndexedRange extends Range {
+	private static class IndexedRange extends Range {
 		private int firstIndex; // 第一个 value 的索引
 
 		public IndexedRange(int index, int first, int last) {
@@ -60,18 +61,14 @@ public class IndexedRangeList implements Cloneable, Serializable {
 
 	private DequeList<IndexedRange> ranges = new ArrayDequeList<IndexedRange>();
 
-	/**
-	 * 获取第一个值
-	 */
+	@Override
 	public int getFirstValue() {
 		if (ranges.size() == 0)
 			throw new IllegalStateException("empty");
 		return ranges.get(0).getFirstValue();
 	}
 
-	/**
-	 * 获取最后一个值
-	 */
+	@Override
 	public int getLastValue() {
 		if (ranges.size() == 0)
 			throw new IllegalStateException("empty");
@@ -79,23 +76,20 @@ public class IndexedRangeList implements Cloneable, Serializable {
 		return r.getLastValue();
 	}
 
-	/**
-	 * 值的数目
-	 */
+	@Override
 	public int size() {
 		if (ranges.size() == 0)
 			return 0;
 		return ranges.get(ranges.size() - 1).getLastIndex() + 1;
 	}
 
+	@Override
 	public boolean isEmpty() {
 		return ranges.isEmpty();
 	}
 
-	/**
-	 * 获取指定位置的值
-	 */
-	public int get(int index) {
+	@Override
+	public int getValue(int index) {
 		if (index < 0)
 			throw new IndexOutOfBoundsException();
 
@@ -117,34 +111,18 @@ public class IndexedRangeList implements Cloneable, Serializable {
 	/**
 	 * 查找指定值是否在该容器中
 	 */
+	@Override
 	public boolean contains(int value) {
 		return binarySearch(value) >= 0;
 	}
 
-	public boolean contains(IndexedRangeList x) {
-		return remainder(x, this).isEmpty();
-	}
-
-	/**
-	 * 查找指定值的索引位置
-	 */
-	public int indexOf(int value) {
+	@Override
+	public int indexOfValue(int value) {
 		int location = binarySearch(value);
 		if (location < 0)
 			return -1;
 		IndexedRange r = ranges.get(location);
 		return r.getFirstIndex() + (value - r.getFirstValue());
-	}
-
-	/**
-	 * 添加值
-	 */
-	public void addValue(int value) {
-		addValueRange(value, value);
-	}
-
-	public void removeValue(int value) {
-		removeValueRange(value, value);
 	}
 
 	/**
@@ -157,10 +135,10 @@ public class IndexedRangeList implements Cloneable, Serializable {
 		for (int i = 0; i < count; ++i) {
 			IndexedRange r = ranges.get(locationStart + i);
 			if (locationStart + i == 0) {
-				r.firstIndex = 0;
+				r.setFirstIndex(0);
 			} else {
 				IndexedRange before = ranges.get(locationStart + i - 1);
-				r.firstIndex = before.getLastIndex() + 1;
+				r.setFirstIndex(before.getLastIndex() + 1);
 			}
 		}
 	}
@@ -190,9 +168,7 @@ public class IndexedRangeList implements Cloneable, Serializable {
 		return -(right + 1);
 	}
 
-	/**
-	 * 添加一个值范围
-	 */
+	@Override
 	public void addValueRange(int firstValue, int lastValue) {
 		if (firstValue > lastValue)
 			throw new IllegalArgumentException();
@@ -247,9 +223,7 @@ public class IndexedRangeList implements Cloneable, Serializable {
 		updateIndex(i1);
 	}
 
-	/**
-	 * 清除一个值范围
-	 */
+	@Override
 	public void removeValueRange(int firstValue, int lastValue) {
 		if (firstValue > lastValue)
 			throw new IllegalArgumentException();
@@ -298,276 +272,33 @@ public class IndexedRangeList implements Cloneable, Serializable {
 		}
 	}
 
-	/**
-	 * 两个容器做交集
-	 * 例如
-	 * 容器 [(1,3),(5,10),(13,24)]
-	 * 容器 [(2,13),(15,100)]
-	 * 交集 [(2,3),(5,10),13,(15,24)]
-	 */
-	public static IndexedRangeList intersectWith(IndexedRangeList x, IndexedRangeList y) {
+	@Override
+	public IndexedRangeList intersectWith(RangeContainer x) {
 		IndexedRangeList ret = new IndexedRangeList();
-		int index1 = 0, index2 = 0;
-		int state = 0; // 0 for none; 1 for single x; 2 for single y; 3 for x and y
-		int firstOfInteract = 0;
-		while (index1 / 2 < x.ranges.size() && index2 / 2 < y.ranges.size()) {
-			IndexedRange r1 = x.ranges.get(index1 / 2);
-			int value1 = (index1 % 2 == 0 ? r1.getFirstValue() : r1.getLastValue());
-			IndexedRange r2 = y.ranges.get(index2 / 2);
-			int value2 = (index2 % 2 == 0 ? r2.getFirstValue() : r2.getLastValue());
-
-			// 对于边界重叠的情况，优先进入 state3
-			switch (state) {
-			case 0:
-				assert index1 % 2 == 0;
-				assert index2 % 2 == 0;
-				if (value1 < value2) {
-					state = 1;
-					++index1;
-				} else {
-					state = 2;
-					++index2;
-				}
-				break;
-
-			case 1:
-				assert index1 % 2 == 1;
-				assert index2 % 2 == 0;
-				if (value1 < value2) {
-					state = 0;
-					++index1;
-				} else {
-					state = 3;
-					++index2;
-					firstOfInteract = value2;
-				}
-				break;
-
-			case 2:
-				assert index1 % 2 == 0;
-				assert index2 % 2 == 1;
-				if (value1 <= value2) {
-					state = 3;
-					++index1;
-					firstOfInteract = value1;
-				} else {
-					state = 0;
-					++index2;
-				}
-				break;
-
-			case 3:
-				assert index1 % 2 == 1;
-				assert index2 % 2 == 1;
-				if (value1 < value2) {
-					state = 2;
-					++index1;
-					ret.ranges.add(new IndexedRange(0, firstOfInteract, value1));
-				} else {
-					state = 1;
-					++index2;
-					ret.ranges.add(new IndexedRange(0, firstOfInteract, value2));
-				}
-				break;
-
-			default:
-				throw new IllegalStateException("Illegal value of state");
-			}
-		}
-		ret.updateIndex(0);
+		intersectWith(this, x, ret);
 		return ret;
 	}
 
-	/**
-	 * 两个容器做并集
-	 */
-	public static IndexedRangeList mergeWith(IndexedRangeList x, IndexedRangeList y) {
+	@Override
+	public IndexedRangeList mergeWith(RangeContainer x) {
 		IndexedRangeList ret = new IndexedRangeList();
-		// 状态机基本上和intersectWith()方法中一样
-		int index1 = 0, index2 = 0;
-		int state = 0; // 0 for none; 1 for single x; 2 for single y; 3 for x and y
-		int firstOfMerge = 0;
-		while (index1 / 2 < x.ranges.size() || index2 / 2 < y.ranges.size()) {
-			int value1, value2;
-			if (index1 / 2 < x.ranges.size()) {
-				IndexedRange r1 = x.ranges.get(index1 / 2);
-				value1 = (index1 % 2 == 0 ? r1.getFirstValue() : r1.getLastValue());
-			} else {
-				value1 = Integer.MAX_VALUE;
-			}
-
-			if (index2 / 2 < y.ranges.size()) {
-				IndexedRange r2 = y.ranges.get(index2 / 2);
-				value2 = (index2 % 2 == 0 ? r2.getFirstValue() : r2.getLastValue());
-			} else {
-				value2 = Integer.MAX_VALUE;
-			}
-
-			// 对于边界重叠的情况，优先进入 state3
-			switch (state) {
-			case 0:
-				assert index1 % 2 == 0;
-				assert index2 % 2 == 0;
-				if (value1 < value2) {
-					state = 1;
-					++index1;
-					firstOfMerge = value1;
-				} else {
-					state = 2;
-					++index2;
-					firstOfMerge = value2;
-				}
-				break;
-
-			case 1:
-				assert index1 % 2 == 1;
-				assert index2 % 2 == 0;
-				if (value1 < value2) {
-					state = 0;
-					++index1;
-					if (ret.ranges.size() > 0 && ret.ranges.get(ret.ranges.size() - 1).getLastValue() + 1 == firstOfMerge)
-						ret.ranges.set(ret.ranges.size() - 1, new IndexedRange(0, ret.ranges.get(ret.ranges.size() - 1).getFirstValue(), value1));
-					else
-						ret.ranges.add(new IndexedRange(0, firstOfMerge, value1));
-				} else {
-					state = 3;
-					++index2;
-				}
-				break;
-
-			case 2:
-				assert index1 % 2 == 0;
-				assert index2 % 2 == 1;
-				if (value1 <= value2) {
-					state = 3;
-					++index1;
-				} else {
-					state = 0;
-					++index2;
-					if (ret.ranges.size() > 0 && ret.ranges.get(ret.ranges.size() - 1).getLastValue() + 1 == firstOfMerge)
-						ret.ranges.set(ret.ranges.size() - 1, new IndexedRange(0, ret.ranges.get(ret.ranges.size() - 1).getFirstValue(), value2));
-					else
-						ret.ranges.add(new IndexedRange(0, firstOfMerge, value2));
-				}
-				break;
-
-			case 3:
-				assert index1 % 2 == 1;
-				assert index2 % 2 == 1;
-				if (value1 < value2) {
-					state = 2;
-					++index1;
-				} else {
-					state = 1;
-					++index2;
-				}
-				break;
-
-			default:
-				throw new IllegalStateException("Illegal value of state");
-			}
-		}
-		ret.updateIndex(0);
+		mergeWith(this, x, ret);
 		return ret;
 	}
 
-	/**
-	 * 两个容器做补集
-	 * {x} - {y}
-	 */
-	public static IndexedRangeList remainder(IndexedRangeList x, IndexedRangeList y) {
+	@Override
+	public IndexedRangeList remainder(RangeContainer x) {
 		IndexedRangeList ret = new IndexedRangeList();
-		int index1 = 0, index2 = 0;
-		int state = 0; // 0 for none; 1 for single x; 2 for single y; 3 for x and y
-		int firstOfRemainder = 0;
-		while (index1 / 2 < x.ranges.size()) {
-			int value1, value2;
-			if (index1 / 2 < x.ranges.size()) {
-				IndexedRange r1 = x.ranges.get(index1 / 2);
-				value1 = (index1 % 2 == 0 ? r1.getFirstValue() : r1.getLastValue());
-			} else {
-				value1 = Integer.MAX_VALUE;
-			}
-
-			if (index2 / 2 < y.ranges.size()) {
-				IndexedRange r2 = y.ranges.get(index2 / 2);
-				value2 = (index2 % 2 == 0 ? r2.getFirstValue() : r2.getLastValue());
-			} else {
-				value2 = Integer.MAX_VALUE;
-			}
-
-			// 对于边界重叠的情况，优先进入 state3 和 state2
-			switch (state) {
-			case 0:
-				assert index1 % 2 == 0;
-				assert index2 % 2 == 0;
-				if (value1 < value2) {
-					state = 1;
-					++index1;
-					firstOfRemainder = value1;
-				} else {
-					state = 2;
-					++index2;
-				}
-				break;
-
-			case 1:
-				assert index1 % 2 == 1;
-				assert index2 % 2 == 0;
-				if (value1 < value2) {
-					state = 0;
-					++index1;
-					ret.ranges.add(new IndexedRange(0, firstOfRemainder, value1));
-				} else {
-					state = 3;
-					++index2;
-					ret.ranges.add(new IndexedRange(0, firstOfRemainder, value2 - 1));
-				}
-				break;
-
-			case 2:
-				assert index1 % 2 == 0;
-				assert index2 % 2 == 1;
-				if (value1 <= value2) {
-					state = 3;
-					++index1;
-				} else {
-					state = 0;
-					++index2;
-				}
-				break;
-
-			case 3:
-				assert index1 % 2 == 1;
-				assert index2 % 2 == 1;
-				if (value1 <= value2) {
-					state = 2;
-					++index1;
-				} else {
-					state = 1;
-					++index2;
-					firstOfRemainder = value2 + 1;
-				}
-				break;
-
-			default:
-				throw new IllegalStateException("Illegal value of state");
-			}
-		}
-		ret.updateIndex(0);
+		remainder(this, x, ret);
 		return ret;
 	}
 
-	/**
-	 * 清空容器
-	 */
+	@Override
 	public void clear() {
 		ranges.clear();
 	}
 
-	/**
-	 * 迭代数据
-	 */
+	@Override
 	public Iterator<Integer> iterator() {
 		return new Iterator<Integer>() {
 
@@ -617,9 +348,7 @@ public class IndexedRangeList implements Cloneable, Serializable {
 		};
 	}
 
-	/**
-	 * 迭代指定区间的数据
-	 */
+	@Override
 	public Iterator<Integer> iterator(final int firstValue, final int lastValue) {
 		// 用二分法找到迭代的起点
 		int left = -1, right = ranges.size();
@@ -691,10 +420,8 @@ public class IndexedRangeList implements Cloneable, Serializable {
 		};
 	}
 
-	/**
-	 * 迭代指定区间中不在本容器中的空隙
-	 */
-	public Iterator<Integer> vacuum_iterator(final int firstValue, final int lastValue) {
+	@Override
+	public Iterator<Integer> vacuumIterator(final int firstValue, final int lastValue) {
 		// 二插查找法找到迭代起点
 		int left = -1, right = ranges.size();
 		while (left + 1 < right) {
@@ -776,6 +503,31 @@ public class IndexedRangeList implements Cloneable, Serializable {
 		};
 	}
 
+	@Override
+	public Iterator<Range> rangeIterator() {
+		return new Iterator<Range>() {
+
+			int location = 0;
+
+			@Override
+			public boolean hasNext() {
+				return location < ranges.size();
+			}
+
+			@Override
+			public Range next() {
+				if (!hasNext())
+					throw new NoSuchElementException();
+				return ranges.get(location++);
+			}
+
+			@Override
+			public void remove() {
+				ranges.remove(location--);
+			}
+		};
+	}
+
 	/**
 	 * 检测容器状态是否是一致的，不一致则说明有错误
 	 */
@@ -805,34 +557,5 @@ public class IndexedRangeList implements Cloneable, Serializable {
 		for (int i = 0, s = ranges.size(); i < s; ++i)
 			l.ranges.add(ranges.get(i).clone());
 		return l;
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o)
-			return true;
-		if (!(o instanceof IndexedRangeList))
-			return false;
-		IndexedRangeList x = (IndexedRangeList) o;
-		return ranges.equals(x.ranges);
-	}
-
-	@Override
-	public int hashCode() {
-		return ranges.hashCode();
-	}
-
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("[");
-		for (int i = 0, size = ranges.size(); i < size; ++i) {
-			IndexedRange r = ranges.get(i);
-			sb.append(r.toString());
-			if (i != size - 1)
-				sb.append(",");
-		}
-		sb.append("]");
-		return sb.toString();
 	}
 }

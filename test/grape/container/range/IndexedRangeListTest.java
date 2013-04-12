@@ -1,6 +1,7 @@
-package grape.container.rangelist;
+package grape.container.range;
 
 import static org.junit.Assert.*;
+import grape.container.range.IndexedRangeList;
 
 import java.util.Iterator;
 
@@ -66,18 +67,18 @@ public class IndexedRangeListTest {
 		l.addValueRange(16, 23); // [(4,6),(16,23)]
 
 		// get()
-		assertEquals(4, l.get(0));
-		assertEquals(5, l.get(1));
-		assertEquals(6, l.get(2));
-		assertEquals(16, l.get(3));
-		assertEquals(17, l.get(4));
-		assertEquals(23, l.get(10));
+		assertEquals(4, l.getValue(0));
+		assertEquals(5, l.getValue(1));
+		assertEquals(6, l.getValue(2));
+		assertEquals(16, l.getValue(3));
+		assertEquals(17, l.getValue(4));
+		assertEquals(23, l.getValue(10));
 
 		// indexOf()
-		assertEquals(0, l.indexOf(4));
-		assertEquals(1, l.indexOf(5));
-		assertEquals(4, l.indexOf(17));
-		assertEquals(-1, l.indexOf(24));
+		assertEquals(0, l.indexOfValue(4));
+		assertEquals(1, l.indexOfValue(5));
+		assertEquals(4, l.indexOfValue(17));
+		assertEquals(-1, l.indexOfValue(24));
 
 		// contains()
 		assertFalse(l.contains(3));
@@ -129,7 +130,7 @@ public class IndexedRangeListTest {
 		y.addValueRange(2, 13);
 		y.addValueRange(15, 100); // [(2,13),(15,100)]
 
-		IndexedRangeList rs = IndexedRangeList.intersectWith(x, y);
+		IndexedRangeList rs = x.intersectWith(y);
 		assertTrue(rs.isValid());
 		assertEquals("[(2,3),(5,10),13,(15,24)]", rs.toString());
 	}
@@ -145,7 +146,7 @@ public class IndexedRangeListTest {
 		y.addValueRange(2, 13);
 		y.addValueRange(15, 100); // [(2,13),(15,100)]
 
-		IndexedRangeList rs = IndexedRangeList.mergeWith(x, y);
+		IndexedRangeList rs = x.mergeWith(y);
 		assertTrue(rs.isValid());
 		assertEquals("[(1,100)]", rs.toString());
 	}
@@ -161,7 +162,7 @@ public class IndexedRangeListTest {
 		y.addValueRange(2, 13);
 		y.addValueRange(15, 100); // [(2,13),(15,100)]
 
-		IndexedRangeList rs = IndexedRangeList.remainder(x, y);
+		IndexedRangeList rs = x.remainder(y);
 		assertTrue(rs.isValid());
 		assertEquals("[1,14]", rs.toString());
 	}
@@ -204,7 +205,7 @@ public class IndexedRangeListTest {
 		x.addValueRange(5, 10);
 		x.addValueRange(13, 15);
 
-		Iterator<Integer> iter = x.vacuum_iterator(4, 14);
+		Iterator<Integer> iter = x.vacuumIterator(4, 14);
 		checkIter(iter, new int[]{4,11,12});
 	}
 }

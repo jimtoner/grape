@@ -1,9 +1,9 @@
-package grape.container.rangelist;
+package grape.container.range;
 
 /**
  * 带索引的整数范围
  */
-class Range {
+public class Range {
 	private int firstValue, lastValue; // 第一个和最后一个元素，闭区间
 
 	public Range(int first, int last) {
@@ -29,6 +29,28 @@ class Range {
 
 	public int length() {
 		return lastValue - firstValue + 1;
+	}
+
+	/**
+	 * 取交集
+	 *
+	 * @return 如果没有交集，返回 null
+	 */
+	public Range intersectWith(Range x) {
+		if (firstValue > x.lastValue || lastValue < x.firstValue)
+			return null;
+		return new Range(Math.max(firstValue, x.firstValue), Math.min(lastValue, x.lastValue));
+	}
+
+	/**
+	 * 取交集
+	 *
+	 * @return 如果区域不相接，返回null
+	 */
+	public Range mergeWith(Range x) {
+		if (firstValue - 1 > x.lastValue || lastValue + 1 < x.firstValue)
+			return null;
+		return new Range(Math.min(firstValue, x.firstValue), Math.max(lastValue, x.lastValue));
 	}
 
 	@Override

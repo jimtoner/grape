@@ -1,9 +1,10 @@
-package grape.container.rangelist;
+package grape.container.range;
 
 import grape.container.primeval.list.LongArrayList;
 
 import java.io.Serializable;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * 用来记录一系列连续或者离散的整数，例如
@@ -12,7 +13,7 @@ import java.util.Iterator;
  *
  * @author jingqi
  */
-public class RangeList implements Cloneable, Serializable {
+public class RangeList extends AbstractRangeContainer implements RangeContainer, Cloneable, Serializable {
 
 	private static final long serialVersionUID = -8874843405551285255L;
 
@@ -35,37 +36,28 @@ public class RangeList implements Cloneable, Serializable {
 		return (int) (range & 0x0000FFFF);
 	}
 
-	/**
-	 * 获取第一个数值
-	 */
+	@Override
 	public int getFirstValue() {
 		if (ranges.size() == 0)
 			throw new IllegalStateException("list is empty");
 		return getLeft(ranges.get(0));
 	}
 
-	/**
-	 * 获取最后一个数值
-	 */
+	@Override
 	public int getLastValue() {
 		if (ranges.size() == 0)
 			throw new IllegalStateException("list is empty");
 		return getRight(ranges.get(ranges.size() - 1));
 	}
 
+	@Override
 	public boolean isEmpty() {
 		return ranges.isEmpty();
 	}
 
-	/**
-	 * 查找指定行号是否在该容器中
-	 */
+	@Override
 	public boolean contains(int value) {
 		return binarySearch(value) >= 0;
-	}
-
-	public boolean contains(RangeList x) {
-		return remainder(x, this).isEmpty();
 	}
 
 	/**
@@ -89,23 +81,7 @@ public class RangeList implements Cloneable, Serializable {
 		return -(right + 1);
 	}
 
-	/**
-	 * 添加
-	 */
-	public void addValue(int value) {
-		addValueRange(value, value);
-	}
-
-	/**
-	 * 删除
-	 */
-	public void removeValue(int value) {
-		removeValueRange(value, value);
-	}
-
-	/**
-	 * 添加行范围(取并集)
-	 */
+	@Override
 	public void addValueRange(int firstValue, int lastValue) {
 		if (firstValue > lastValue)
 			throw new IllegalArgumentException();
@@ -161,9 +137,7 @@ public class RangeList implements Cloneable, Serializable {
 		}
 	}
 
-	/**
-	 * 清除一个值范围
-	 */
+	@Override
 	public void removeValueRange(int firstValue, int lastValue) {
 		if (firstValue > lastValue)
 			throw new IllegalArgumentException();
@@ -214,273 +188,12 @@ public class RangeList implements Cloneable, Serializable {
 
 	}
 
-	/**
-	 * 两个容器做交集
-	 * 例如
-	 * 容器 [(1,3),(5,10),(13,24)]
-	 * 容器 [(2,13),(15,100)]
-	 * 交集 [(2,3),(5,10),13,(15,24)]
-	 */
-	public static RangeList intersectWith(RangeList x, RangeList y) {
-		RangeList ret = new RangeList();
-		int index1 = 0, index2 = 0;
-		int state = 0; // 0 for none; 1 for single x; 2 for single y; 3 for x and y
-		int firstOfInteract = 0;
-		while (index1 / 2 < x.ranges.size() && index2 / 2 < y.ranges.size()) {
-			long range1 = x.ranges.get(index1 / 2);
-			int value1 = (index1 % 2 == 0 ? getLeft(range1) : getRight(range1));
-			long range2 = y.ranges.get(index2 / 2);
-			int value2 = (index2 % 2 == 0 ? getLeft(range2) : getRight(range2));
-
-			// 对于边界重叠的情况，优先进入 state3
-			switch (state) {
-			case 0:
-				assert index1 % 2 == 0;
-				assert index2 % 2 == 0;
-				if (value1 < value2) {
-					state = 1;
-					++index1;
-				} else {
-					state = 2;
-					++index2;
-				}
-				break;
-
-			case 1:
-				assert index1 % 2 == 1;
-				assert index2 % 2 == 0;
-				if (value1 < value2) {
-					state = 0;
-					++index1;
-				} else {
-					state = 3;
-					++index2;
-					firstOfInteract = value2;
-				}
-				break;
-
-			case 2:
-				assert index1 % 2 == 0;
-				assert index2 % 2 == 1;
-				if (value1 <= value2) {
-					state = 3;
-					++index1;
-					firstOfInteract = value1;
-				} else {
-					state = 0;
-					++index2;
-				}
-				break;
-
-			case 3:
-				assert index1 % 2 == 1;
-				assert index2 % 2 == 1;
-				if (value1 < value2) {
-					state = 2;
-					++index1;
-					ret.ranges.add(makeRange(firstOfInteract, value1));
-				} else {
-					state = 1;
-					++index2;
-					ret.ranges.add(makeRange(firstOfInteract, value2));
-				}
-				break;
-
-			default:
-				throw new IllegalStateException("Illegal value of state");
-			}
-		}
-		return ret;
-	}
-
-	/**
-	 * 两个容器做并集
-	 */
-	public static RangeList mergeWith(RangeList x, RangeList y) {
-		RangeList ret = new RangeList();
-		// 状态机基本上和intersectWith()方法中一样
-		int index1 = 0, index2 = 0;
-		int state = 0; // 0 for none; 1 for single x; 2 for single y; 3 for x and y
-		int firstOfMerge = 0;
-		while (index1 / 2 < x.ranges.size() || index2 / 2 < y.ranges.size()) {
-			int value1, value2;
-			if (index1 / 2 < x.ranges.size()) {
-				long range1 = x.ranges.get(index1 / 2);
-				value1 = (index1 % 2 == 0 ? getLeft(range1) : getRight(range1));
-			} else {
-				value1 = Integer.MAX_VALUE;
-			}
-
-			if (index2 / 2 < y.ranges.size()) {
-				long range2 = y.ranges.get(index2 / 2);
-				value2 = (index2 % 2 == 0 ? getLeft(range2) : getRight(range2));
-			} else {
-				value2 = Integer.MAX_VALUE;
-			}
-
-			// 对于边界重叠的情况，优先进入 state3
-			switch (state) {
-			case 0:
-				assert index1 % 2 == 0;
-				assert index2 % 2 == 0;
-				if (value1 < value2) {
-					state = 1;
-					++index1;
-					firstOfMerge = value1;
-				} else {
-					state = 2;
-					++index2;
-					firstOfMerge = value2;
-				}
-				break;
-
-			case 1:
-				assert index1 % 2 == 1;
-				assert index2 % 2 == 0;
-				if (value1 < value2) {
-					state = 0;
-					++index1;
-					if (ret.ranges.size() > 0 && getRight(ret.ranges.get(ret.ranges.size() - 1)) + 1 == firstOfMerge)
-						ret.ranges.set(ret.ranges.size() - 1, makeRange(getLeft(ret.ranges.get(ret.ranges.size() - 1)), value1));
-					else
-						ret.ranges.add(makeRange(firstOfMerge, value1));
-				} else {
-					state = 3;
-					++index2;
-				}
-				break;
-
-			case 2:
-				assert index1 % 2 == 0;
-				assert index2 % 2 == 1;
-				if (value1 <= value2) {
-					state = 3;
-					++index1;
-				} else {
-					state = 0;
-					++index2;
-					if (ret.ranges.size() > 0 && getRight(ret.ranges.get(ret.ranges.size() - 1)) + 1 == firstOfMerge)
-						ret.ranges.set(ret.ranges.size() - 1, makeRange(getLeft(ret.ranges.get(ret.ranges.size() - 1)), value2));
-					else
-						ret.ranges.add(makeRange(firstOfMerge, value2));
-				}
-				break;
-
-			case 3:
-				assert index1 % 2 == 1;
-				assert index2 % 2 == 1;
-				if (value1 < value2) {
-					state = 2;
-					++index1;
-				} else {
-					state = 1;
-					++index2;
-				}
-				break;
-
-			default:
-				throw new IllegalStateException("Illegal value of state");
-			}
-		}
-		return ret;
-	}
-
-	/**
-	 * 两个容器做补集
-	 * {x} - {y}
-	 */
-	public static RangeList remainder(RangeList x, RangeList y) {
-		RangeList ret = new RangeList();
-		int index1 = 0, index2 = 0;
-		int state = 0;
-		int firstOfRemainder = 0;
-		while (index1 / 2 < x.ranges.size()) {
-			int value1, value2;
-			if (index1 / 2 < x.ranges.size()) {
-				long range1 = x.ranges.get(index1 / 2);
-				value1 = (index1 % 2 == 0 ? getLeft(range1) : getRight(range1));
-			} else {
-				value1 = Integer.MAX_VALUE;
-			}
-
-			if (index2 / 2 < y.ranges.size()) {
-				long range2 = y.ranges.get(index2 / 2);
-				value2 = (index2 % 2 == 0 ? getLeft(range2) : getRight(range2));
-			} else {
-				value2 = Integer.MAX_VALUE;
-			}
-
-			// 对于边界重叠的情况，优先进入 state3 和 state2
-			switch (state) {
-			case 0:
-				assert index1 % 2 == 0;
-				assert index2 % 2 == 0;
-				if (value1 < value2) {
-					state = 1;
-					++index1;
-					firstOfRemainder = value1;
-				} else {
-					state = 2;
-					++index2;
-				}
-				break;
-
-			case 1:
-				assert index1 % 2 == 1;
-				assert index2 % 2 == 0;
-				if (value1 < value2) {
-					state = 0;
-					++index1;
-					ret.ranges.add(makeRange(firstOfRemainder, value1));
-				} else {
-					state = 3;
-					++index2;
-					ret.ranges.add(makeRange(firstOfRemainder, value2 - 1));
-				}
-				break;
-
-			case 2:
-				assert index1 % 2 == 0;
-				assert index2 % 2 == 1;
-				if (value1 <= value2) {
-					state = 3;
-					++index1;
-				} else {
-					state = 0;
-					++index2;
-				}
-				break;
-
-			case 3:
-				assert index1 % 2 == 1;
-				assert index2 % 2 == 1;
-				if (value1 <= value2) {
-					state = 2;
-					++index1;
-				} else {
-					state = 1;
-					++index2;
-					firstOfRemainder = value2 + 1;
-				}
-				break;
-
-			default:
-				throw new IllegalStateException("Illegal value of state");
-			}
-		}
-		return ret;
-	}
-
-	/**
-	 * 清空容器
-	 */
+	@Override
 	public void clear() {
 		ranges.clear();
 	}
 
-	/**
-	 * 迭代数据
-	 */
+	@Override
 	public Iterator<Integer> iterator() {
 		return new Iterator<Integer>() {
 
@@ -530,9 +243,7 @@ public class RangeList implements Cloneable, Serializable {
 		};
 	}
 
-	/**
-	 * 迭代指定区间的数据
-	 */
+	@Override
 	public Iterator<Integer> iterator(final int firstValue, final int lastValue) {
 		// 用二分法找到迭代的起点
 		int left = -1, right = ranges.size();
@@ -604,10 +315,8 @@ public class RangeList implements Cloneable, Serializable {
 		};
 	}
 
-	/**
-	 * 迭代指定区间中不在本容器中的空隙
-	 */
-	public Iterator<Integer> vacuum_iterator(final int firstValue, final int lastValue) {
+	@Override
+	public Iterator<Integer> vacuumIterator(final int firstValue, final int lastValue) {
 		// 二插查找法找到迭代起点
 		int left = -1, right = ranges.size();
 		while (left + 1 < right) {
@@ -689,6 +398,32 @@ public class RangeList implements Cloneable, Serializable {
 		};
 	}
 
+	@Override
+	public Iterator<Range> rangeIterator() {
+		return new Iterator<Range>() {
+
+			int location = 0;
+
+			@Override
+			public boolean hasNext() {
+				return location < ranges.size();
+			}
+
+			@Override
+			public Range next() {
+				if (!hasNext())
+					throw new NoSuchElementException();
+				long range = ranges.get(location++);
+				return new Range(getLeft(range), getRight(range));
+			}
+
+			@Override
+			public void remove() {
+				ranges.remove(location--);
+			}
+		};
+	}
+
 	/**
 	 * 检查容器数据是否是一致的
 	 */
@@ -710,44 +445,30 @@ public class RangeList implements Cloneable, Serializable {
 	}
 
 	@Override
+	public RangeList intersectWith(RangeContainer x) {
+		RangeList ret = new RangeList();
+		intersectWith(this, x, ret);
+		return ret;
+	}
+
+	@Override
+	public RangeList mergeWith(RangeContainer x) {
+		RangeList ret = new RangeList();
+		mergeWith(this, x, ret);
+		return ret;
+	}
+
+	@Override
+	public RangeList remainder(RangeContainer x) {
+		RangeList ret = new RangeList();
+		remainder(this, x, ret);
+		return ret;
+	}
+
+	@Override
 	public RangeList clone() {
 		RangeList l = new RangeList();
 		l.ranges = ranges.clone();
 		return l;
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o)
-			return true;
-		if (!(o instanceof RangeList))
-			return false;
-		RangeList x = (RangeList) o;
-		return ranges.equals(x.ranges);
-	}
-
-	@Override
-	public int hashCode() {
-		return ranges.hashCode();
-	}
-
-	@Override
-	public String toString() {
-		StringBuilder sb = new StringBuilder();
-		sb.append("[");
-		for (int i = 0, size = ranges.size(); i < size; ++i) {
-			long r = ranges.get(i);
-			int first = getLeft(r);
-			int second = getRight(r);
-			if (first == second)
-				sb.append(Integer.toString(first));
-			else
-				sb.append("(").append(Integer.toString(first)).append(",")
-				.append(Integer.toString(second)).append(")");
-			if (i != size - 1)
-				sb.append(",");
-		}
-		sb.append("]");
-		return sb.toString();
 	}
 }

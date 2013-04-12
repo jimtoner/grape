@@ -1,6 +1,7 @@
-package grape.container.rangelist;
+package grape.container.range;
 
 import static org.junit.Assert.*;
+import grape.container.range.RangeList;
 
 import java.util.Iterator;
 
@@ -129,7 +130,7 @@ public class RangeListTest {
 		y.addValueRange(2, 13);
 		y.addValueRange(15, 100); // [(2,13),(15,100)]
 
-		RangeList rs = RangeList.intersectWith(x, y);
+		RangeList rs = x.intersectWith(y);
 		assertTrue(rs.isValid());
 		assertEquals("[(2,3),(5,10),13,(15,24)]", rs.toString());
 	}
@@ -145,7 +146,7 @@ public class RangeListTest {
 		y.addValueRange(2, 13);
 		y.addValueRange(15, 100); // [(2,13),(15,100)]
 
-		RangeList rs = RangeList.mergeWith(x, y);
+		RangeList rs = x.mergeWith(y);
 		assertTrue(rs.isValid());
 		assertEquals("[(1,100)]", rs.toString());
 	}
@@ -161,7 +162,7 @@ public class RangeListTest {
 		y.addValueRange(2, 13);
 		y.addValueRange(15, 100); // [(2,13),(15,100)]
 
-		RangeList rs = RangeList.remainder(x, y);
+		RangeList rs = x.remainder(y);
 		assertTrue(rs.isValid());
 		assertEquals("[1,14]", rs.toString());
 	}
@@ -204,7 +205,7 @@ public class RangeListTest {
 		x.addValueRange(5, 10);
 		x.addValueRange(13, 15);
 
-		Iterator<Integer> iter = x.vacuum_iterator(4, 14);
+		Iterator<Integer> iter = x.vacuumIterator(4, 14);
 		checkIter(iter, new int[]{4,11,12});
 	}
 }
