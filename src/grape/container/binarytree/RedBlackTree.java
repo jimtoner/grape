@@ -1,6 +1,5 @@
 package grape.container.binarytree;
 
-import java.util.Comparator;
 
 /**
  * 红黑树
@@ -16,12 +15,12 @@ public class RedBlackTree {
      *
      * @return 新的根
      */
-    public static RedBlackTreeNode insert(RedBlackTreeNode root, RedBlackTreeNode new_node, Comparator<RedBlackTreeNode> cmp) {
+    public static RedBlackTreeNode insert(RedBlackTreeNode root, RedBlackTreeNode new_node) {
     	RedBlackTreeNode parent = null;
         boolean insertToLeft = true;
         for (RedBlackTreeNode current = root; null != current; ) {
             parent = current;
-            if (cmp.compare(new_node, current) < 0) {
+            if (new_node.compareTo(current) < 0) {
                 current = (RedBlackTreeNode) current.getLeftChild();
                 insertToLeft = true;
             } else {
