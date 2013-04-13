@@ -47,30 +47,14 @@ public class RedBlackTree {
      * @return 新的根
      */
     public static RedBlackTreeNode insert(RedBlackTreeNode root, RedBlackTreeNode new_node, RedBlackTreeOperationListener listener) {
-    	RedBlackTreeNode parent = null;
-        boolean insertToLeft = true;
-        for (RedBlackTreeNode current = root; null != current; ) {
-            parent = current;
-            if (new_node.compareTo(current) < 0) {
-                current = (RedBlackTreeNode) current.getLeftChild();
-                insertToLeft = true;
-            } else {
-                current = (RedBlackTreeNode) current.getRightChild();
-                insertToLeft = false;
-            }
-        }
 
-        new_node.setParent(parent);
-        if (null == parent)
-            root = new_node;
-        else if (insertToLeft)
-            parent.setLeftChild(new_node);
-        else
-            parent.setRightChild(new_node);
+    	// 先用二叉搜索树的方式插入新节点，并设置颜色为红色
+        root = (RedBlackTreeNode) BinarySearchTree.insert(root, new_node);
         new_node.setRed(true);
         if (listener != null)
         	listener.attachedToTree(new_node);
 
+        // 然后修正红黑树
         root = _rb_insert_fixup(root, new_node, listener);
 
         return root;
