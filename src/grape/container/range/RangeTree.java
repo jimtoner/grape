@@ -1,7 +1,7 @@
 package grape.container.range;
 
 import grape.container.binarytree.*;
-import grape.container.binarytree.BinaryTree.InorderTraversalIterator;
+import grape.container.binarytree.BinaryTree.TraversalIterator;
 import grape.container.binarytree.RedBlackTree.RedBlackTreeOperationListener;
 import grape.container.binarytree.node.BinaryTreeNode;
 import grape.container.binarytree.node.RedBlackTreeNode;
@@ -89,6 +89,9 @@ public class RangeTree extends AbstractRangeContainer implements IndexedRangeCon
 		}
 	}
 
+	/**
+	 * 在红黑树插入、删除操作的同时，修正节点的 size 值
+	 */
 	private static final RedBlackTreeOperationListener listener = new RedBlackTreeOperationListener() {
 
 		@Override
@@ -276,6 +279,9 @@ public class RangeTree extends AbstractRangeContainer implements IndexedRangeCon
 		return n;
 	}
 
+	/**
+	 * 修正节点的 size 值
+	 */
 	private static void fixSize(Node x) {
 		int size = 0;
 		if (x.getLeftChild() != null)
@@ -286,6 +292,9 @@ public class RangeTree extends AbstractRangeContainer implements IndexedRangeCon
 		x.setSize(size);
 	}
 
+	/**
+	 * 修正节点及其祖先节点的 size 值
+	 */
 	private static void fixSizeUpToRoot(Node x) {
 		while (x != null) {
 			fixSize(x);
@@ -406,7 +415,7 @@ public class RangeTree extends AbstractRangeContainer implements IndexedRangeCon
 	public Iterator<Range> rangeIterator() {
 		return new Iterator<Range>() {
 
-			InorderTraversalIterator iter = new InorderTraversalIterator(root);
+			Iterator<BinaryTreeNode> iter = new TraversalIterator(root, RedBlackTree.TRAVERSAL_ORDER);
 
 			@Override
 			public boolean hasNext() {
@@ -465,7 +474,7 @@ public class RangeTree extends AbstractRangeContainer implements IndexedRangeCon
 	}
 
 	public boolean isValid() {
-		Iterator<BinaryTreeNode> iter = new InorderTraversalIterator(root);
+		Iterator<BinaryTreeNode> iter = new TraversalIterator(root, RedBlackTree.TRAVERSAL_ORDER);
 		while (iter.hasNext()) {
 			Node n = (Node) iter.next();
 			if (n.getFirstValue() > n.getLastValue())
@@ -492,7 +501,7 @@ public class RangeTree extends AbstractRangeContainer implements IndexedRangeCon
 	@Override
 	public RangeTree clone() {
 		RangeTree ret = new RangeTree();
-		Iterator<BinaryTreeNode> iter = new InorderTraversalIterator(root);
+		Iterator<BinaryTreeNode> iter = new TraversalIterator(root, RedBlackTree.TRAVERSAL_ORDER);
 		while (iter.hasNext()) {
 			Node n = (Node) iter.next();
 			ret.addValueRange(n.getFirstValue(), n.getLastValue());

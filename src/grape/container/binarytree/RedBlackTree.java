@@ -12,6 +12,16 @@ public class RedBlackTree {
 
 	private RedBlackTree() {}
 
+	/**
+	 * 红黑树从小到大遍历的顺序
+	 */
+	public static final BinaryTree.TraversalOrder TRAVERSAL_ORDER = BinarySearchTree.TRAVERSAL_ORDER;
+
+	/**
+	 * 红黑树插入、删除操作监听器
+	 *
+	 * @author jingqi
+	 */
 	public static interface RedBlackTreeOperationListener {
 		/**
 		 * 节点被添加到了树上
@@ -20,7 +30,7 @@ public class RedBlackTree {
 
 		/**
 		 * 节点被从树上摘除
-		 * NOTE: 实际上可能是一个 “摘除-替换” 的过程，被替换的节点必然是 parent 或者其祖先
+		 * NOTE: 实际上可能是一个 “摘除-替换” 的过程，被替换的节点必然是其 parent 或者祖先
 		 *
 		 * @param parent 被摘除节点的父节点，如果为 null，说明根节点被摘除
 		 */

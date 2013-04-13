@@ -1,5 +1,6 @@
 package grape.container.binarytree;
 
+import grape.container.binarytree.BinaryTree.TraversalOrder;
 import grape.container.binarytree.node.BinarySearchTreeNode;
 
 
@@ -11,6 +12,11 @@ import grape.container.binarytree.node.BinarySearchTreeNode;
 public class BinarySearchTree {
 
 	private BinarySearchTree() {}
+
+	/**
+	 * 二叉搜索树从小到大遍历的顺序
+	 */
+	public static final BinaryTree.TraversalOrder TRAVERSAL_ORDER = TraversalOrder.Inorder;
 
     /**
      * 查找数据所在的节点
@@ -121,46 +127,28 @@ public class BinarySearchTree {
     /**
      * 找到最小数据所在的节点
      */
-    public static BinarySearchTreeNode minimum(BinarySearchTreeNode sub_root) {
-        while (null != sub_root.getLeftChild())
-            sub_root = (BinarySearchTreeNode) sub_root.getLeftChild();
-        return sub_root;
+    public static BinarySearchTreeNode minimum(BinarySearchTreeNode root_of_sub_tree) {
+    	return (BinarySearchTreeNode) BinaryTree.minimum(root_of_sub_tree, TRAVERSAL_ORDER);
     }
 
     /**
      * 找到最大数据所在的节点
      */
-    public static BinarySearchTreeNode maximum(BinarySearchTreeNode sub_root) {
-        while (null != sub_root.getRightChild())
-            sub_root = (BinarySearchTreeNode) sub_root.getRightChild();
-        return sub_root;
+    public static BinarySearchTreeNode maximum(BinarySearchTreeNode root_of_sub_tree) {
+    	return (BinarySearchTreeNode) BinaryTree.maximum(root_of_sub_tree, TRAVERSAL_ORDER);
     }
 
     /**
      * 按照数据大小顺序找到下一个结点
      */
     public static BinarySearchTreeNode successor(BinarySearchTreeNode x) {
-        if (null != x.getRightChild())
-            return minimum((BinarySearchTreeNode) x.getRightChild());
-        BinarySearchTreeNode parent = (BinarySearchTreeNode) x.getParent();
-        while (null != parent && x == parent.getRightChild()) {
-            x = parent;
-            parent = (BinarySearchTreeNode) x.getParent();
-        }
-        return parent;
+    	return (BinarySearchTreeNode) BinaryTree.successor(null, x, TRAVERSAL_ORDER);
     }
 
     /**
      * 按照数据大小顺序找到上一个结点
      */
     public static BinarySearchTreeNode predecessor(BinarySearchTreeNode x) {
-        if (null != x.getLeftChild())
-            return maximum((BinarySearchTreeNode) x.getLeftChild());
-        BinarySearchTreeNode parent = (BinarySearchTreeNode) x.getParent();
-        while (null != parent && x == parent.getLeftChild()) {
-            x = parent;
-            parent = (BinarySearchTreeNode) x.getParent();
-        }
-        return parent;
+    	return (BinarySearchTreeNode) BinaryTree.predecessor(null, x, TRAVERSAL_ORDER);
     }
 }

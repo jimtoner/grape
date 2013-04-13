@@ -1,12 +1,8 @@
 package grape.container.binarytree;
 
 import static org.junit.Assert.assertEquals;
-import grape.container.binarytree.BinaryTree.InorderTraversalIterator;
-import grape.container.binarytree.BinaryTree.InorderTraversalReverseIterator;
-import grape.container.binarytree.BinaryTree.PostorderTraversalIterator;
-import grape.container.binarytree.BinaryTree.PostorderTraversalReverseIterator;
-import grape.container.binarytree.BinaryTree.PreorderTraversalIterator;
-import grape.container.binarytree.BinaryTree.PreorderTraversalReverseIterator;
+import grape.container.binarytree.BinaryTree.TraversalIterator;
+import grape.container.binarytree.BinaryTree.TraversalOrder;
 import grape.container.binarytree.node.BinarySearchTreeNode;
 import grape.container.binarytree.node.BinaryTreeNode;
 
@@ -93,24 +89,24 @@ public class BinaryTreeTest {
 		Node root = buildTree();
 
 		// 中序遍历
-		Iterator<BinaryTreeNode> iter = new InorderTraversalIterator(root);
+		Iterator<BinaryTreeNode> iter = new TraversalIterator(root, TraversalOrder.Inorder);
 		checkIterator(iter, new int[] {1, 2, 3, 4, 5, 6, 7});
 
-		iter = new InorderTraversalReverseIterator(root);
+		iter = new TraversalIterator(root, TraversalOrder.InorderReverse);
 		checkIterator(iter, new int[] {7, 6, 5, 4, 3, 2, 1});
 
 		// 先序遍历
-		iter = new PreorderTraversalIterator(root);
+		iter = new TraversalIterator(root, TraversalOrder.Preorder);
 		checkIterator(iter, new int[] {4, 2, 1, 3, 6, 5, 7});
 
-		iter = new PreorderTraversalReverseIterator(root);
+		iter = new TraversalIterator(root, TraversalOrder.PreorderReverse);
 		checkIterator(iter, new int[] {7, 5, 6, 3, 1, 2, 4});
 
 		// 后序遍历
-		iter = new PostorderTraversalIterator(root);
+		iter = new TraversalIterator(root, TraversalOrder.Postorder);
 		checkIterator(iter, new int[] {1, 3, 2, 5, 7, 6, 4});
 
-		iter = new PostorderTraversalReverseIterator(root);
+		iter = new TraversalIterator(root, TraversalOrder.PostorderReverse);
 		checkIterator(iter, new int[] {4, 6, 7, 5, 2, 3, 1});
 	}
 
