@@ -40,7 +40,7 @@ public class BinarySearchTree {
     	BinarySearchTreeNode parent = null;
         boolean insertToLeft = true;
         for (BinarySearchTreeNode x = root; null != x; ) {
-            parent = (BinarySearchTreeNode) x;
+            parent = x;
             if (new_node.compareTo(x) < 0) {
                 x = (BinarySearchTreeNode) x.getLeftChild();
                 insertToLeft = true;
@@ -70,7 +70,7 @@ public class BinarySearchTree {
         if (null == to_be_del.getLeftChild() || null == to_be_del.getRightChild())
             escaper = to_be_del;
         else
-            escaper = (BinarySearchTreeNode) successor(to_be_del);
+            escaper = successor(to_be_del);
 
         BinarySearchTreeNode sublink = null;
         if (null != escaper.getLeftChild())

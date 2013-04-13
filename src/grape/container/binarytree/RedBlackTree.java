@@ -76,6 +76,10 @@ public class RedBlackTree {
         return root;
     }
 
+    public static RedBlackTreeNode insert(RedBlackTreeNode root, RedBlackTreeNode new_node) {
+    	return insert(root, new_node, null);
+    }
+
     /**
      * 从红黑树中删除已有节点
      *
@@ -140,6 +144,10 @@ public class RedBlackTree {
         return root;
     }
 
+    public static RedBlackTreeNode remove(RedBlackTreeNode root, RedBlackTreeNode to_be_del) {
+    	return remove(root, to_be_del, null);
+    }
+
     /**
      * 删除一个范围
      */
@@ -153,6 +161,10 @@ public class RedBlackTree {
     		n = next;
     	}
     	return root;
+    }
+
+    public static RedBlackTreeNode removeRange(RedBlackTreeNode root, RedBlackTreeNode first, RedBlackTreeNode last) {
+    	return removeRange(root, first, last, null);
     }
 
     /**
