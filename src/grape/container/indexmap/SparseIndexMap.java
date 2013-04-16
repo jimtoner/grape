@@ -22,12 +22,24 @@ public class SparseIndexMap <T> implements Iterable<T> {
 	 * @param maxIndex 设置了之后，index取值范围只能在 [0, maxIndex) 区间内(左闭右开区间)
 	 */
 	public SparseIndexMap(int maxIndex) {
-		int bitLength = 32 - Integer.numberOfLeadingZeros(maxIndex - 1);
-		BLOCK_SHIFT = bitLength / 2;
-		BLOCK_MASK = ~((~0) << BLOCK_SHIFT);
-		BLOCK_SIZE = 1 << BLOCK_SHIFT;
-		int blockCount = (maxIndex + BLOCK_SIZE - 1) / BLOCK_SIZE;
-		blocks = new Object[blockCount][];
+		if (maxIndex <= 0)
+			throw new IllegalArgumentException();
+
+		if (maxIndex < 256) {
+			// size 太小，退化成一维数组
+			BLOCK_SHIFT = 8;
+			BLOCK_MASK = 0xFF;
+			BLOCK_SIZE = 256;
+			blocks = new Object[1][];
+			blocks[0] = new Object[maxIndex + 1];
+		} else {
+			int bitLength = 32 - Integer.numberOfLeadingZeros(maxIndex - 1);
+			BLOCK_SHIFT = bitLength / 2;
+			BLOCK_MASK = ~((~0) << BLOCK_SHIFT);
+			BLOCK_SIZE = 1 << BLOCK_SHIFT;
+			int blockCount = (maxIndex + BLOCK_SIZE - 1) / BLOCK_SIZE;
+			blocks = new Object[blockCount][];
+		}
 
 		firstIndex = -1;
 		lastIndex = -2;
@@ -35,6 +47,9 @@ public class SparseIndexMap <T> implements Iterable<T> {
 
 	@SuppressWarnings("unchecked")
 	public T get(int index) {
+		if (index < 0)
+			throw new IllegalArgumentException();
+
 		int pdi = index >> BLOCK_SHIFT;
 		if (blocks[pdi] == null)
 			return null;
@@ -44,8 +59,8 @@ public class SparseIndexMap <T> implements Iterable<T> {
 
 	@SuppressWarnings("unchecked")
 	public T put(int index, T data) {
-		if (data == null)
-			throw new IllegalArgumentException("null is not expected");
+		if (index < 0 || data == null) // null 是不允许的
+			throw new IllegalArgumentException();
 
 		// 维护 row range
 		if (firstIndex < 0 || index < firstIndex)
@@ -64,6 +79,9 @@ public class SparseIndexMap <T> implements Iterable<T> {
 
 	@SuppressWarnings("unchecked")
 	public T remove(int index) {
+		if (index < 0)
+			throw new IllegalArgumentException();
+
 		int pdi = index >> BLOCK_SHIFT;
 		if (blocks[pdi] == null)
 			return null;
