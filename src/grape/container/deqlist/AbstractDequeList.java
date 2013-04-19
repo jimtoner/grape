@@ -199,4 +199,55 @@ public abstract class AbstractDequeList<E> extends AbstractList<E>
 	        }
 		};
 	}
+
+	@Override
+	public int hashCode() {
+		int ret = 17;
+		Iterator<E> iter = iterator();
+		while (iter.hasNext()) {
+			E e = iter.next();
+			ret = ret * 31 + (e == null ? 0 : e.hashCode());
+		}
+		return ret;
+	}
+
+	@SuppressWarnings("rawtypes")
+	@Override
+	public boolean equals(Object o) {
+		if (o == this)
+			return true;
+		if (!(o instanceof AbstractDequeList))
+			return false;
+
+        ListIterator<E> e1 = listIterator();
+        ListIterator e2 = ((List) o).listIterator();
+        while (e1.hasNext() && e2.hasNext()) {
+            E o1 = e1.next();
+            Object o2 = e2.next();
+            if (!(o1==null ? o2==null : o1.equals(o2)))
+                return false;
+        }
+        return !(e1.hasNext() || e2.hasNext());
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder("[");
+		Iterator<E> iter = iterator();
+		boolean first = true;
+		while (iter.hasNext()) {
+			E e = iter.next();
+
+			if (!first)
+				sb.append(", ");
+			first = false;
+
+			if (e == null)
+				sb.append("null");
+			else
+				sb.append(e.toString());
+		}
+		sb.append("]");
+		return sb.toString();
+	}
 }
