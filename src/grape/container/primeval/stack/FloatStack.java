@@ -1,8 +1,5 @@
 package grape.container.primeval.stack;
 
-/**
- * 浮点数栈
- */
 public class FloatStack {
 
 	private static final int DEFAULT_INITICAL_CAPACITY = 16;

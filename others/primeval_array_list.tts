@@ -385,6 +385,9 @@ $$          }
 }
 $$} // end of function
 $${
+    output("ByteArrayList.java");
+    body("Byte", "Byte", "byte");
+
     output("CharArrayList.java");
     body("Char", "Character", "char");
     

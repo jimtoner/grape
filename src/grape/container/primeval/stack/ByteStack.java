@@ -1,22 +1,21 @@
-$$function body(string PREFIX, string WRAPPER, string NATIVE) {
 package grape.container.primeval.stack;
 
-public class ${PREFIX}Stack {
+public class ByteStack {
 
 	private static final int DEFAULT_INITICAL_CAPACITY = 16;
 
 	private int size;
-	private ${NATIVE}[] buffer;
+	private byte[] buffer;
 
-	public ${PREFIX}Stack() {
+	public ByteStack() {
 		this(DEFAULT_INITICAL_CAPACITY);
 	}
 
-	public ${PREFIX}Stack(int initialCapacity) {
+	public ByteStack(int initialCapacity) {
 		if (initialCapacity <= 0)
 			throw new IllegalArgumentException("Illegal capacity:"
 					+ initialCapacity);
-		buffer = new ${NATIVE}[initialCapacity];
+		buffer = new byte[initialCapacity];
 		size = 0;
 	}
 
@@ -28,17 +27,17 @@ public class ${PREFIX}Stack {
 		if (new_cap < new_size)
 			new_cap = new_size;
 
-		${NATIVE}[] new_buf = new ${NATIVE}[new_cap];
+		byte[] new_buf = new byte[new_cap];
 		System.arraycopy(buffer, 0, new_buf, 0, size);
 		buffer = new_buf;
 	}
 
-	public void push(${NATIVE} v) {
+	public void push(byte v) {
 		ensureCap(size + 1);
 		buffer[size++] = v;
 	}
 
-	public ${NATIVE} pop() {
+	public byte pop() {
 		if (size <= 0)
 			throw new IndexOutOfBoundsException("Empty stack");
 
@@ -48,7 +47,7 @@ public class ${PREFIX}Stack {
 	/**
 	 * 相当于 get(-1) 或者 get(size() - 1)
 	 */
-	public ${NATIVE} top() {
+	public byte top() {
 		if (size <= 0)
 			throw new IndexOutOfBoundsException("Empty stack");
 		return buffer[size - 1];
@@ -57,7 +56,7 @@ public class ${PREFIX}Stack {
 	/**
 	 * 正索引[0,size)，栈底为0，栈顶为size-1 负索引[-size, -1]，栈底为-size，栈顶为-1
 	 */
-	public ${NATIVE} get(int index) {
+	public byte get(int index) {
 		if (index < -size || index >= size)
 			throw new IndexOutOfBoundsException("Illegal index " + index
 					+ " with size " + size);
@@ -77,10 +76,10 @@ public class ${PREFIX}Stack {
 
 	@Override
 	public boolean equals(Object o) {
-		if (!(o instanceof ${PREFIX}Stack))
+		if (!(o instanceof ByteStack))
 			return false;
 
-		${PREFIX}Stack ds = (${PREFIX}Stack) o;
+		ByteStack ds = (ByteStack) o;
 		if (ds.size != size)
 			return false;
 		for (int i = 0; i < size; ++i)
@@ -93,24 +92,14 @@ public class ${PREFIX}Stack {
 	public int hashCode() {
 		int h = 0;
 		for (int i = 0; i < size; ++i) {
-$$          if (NATIVE == "float") {
-                long v = Float.floatToIntBits(buffer[i]);
-                h = (h >>> 1) ^ (int) (v ^ (v >>> 32));
-$$          } else if (NATIVE == "double") {
-                long v = Double.doubleToRawLongBits(buffer[i]);
-                h = (h >>> 1) ^ (int) (v ^ (v >>> 32));
-$$          } else if (NATIVE == "long") {
-                h = (h >>> 1) ^ (int) (buffer[i] ^ (buffer[i] >>> 32));
-$$          } else {
                 h = h * 31 + buffer[i];
-$$          }
 		}
 		return h;
 	}
 
 	@Override
-	public ${PREFIX}Stack clone() {
-		${PREFIX}Stack ret = new ${PREFIX}Stack(size);
+	public ByteStack clone() {
+		ByteStack ret = new ByteStack(size);
 		System.arraycopy(buffer, 0, ret.buffer, 0, size);
 		ret.size = size;
 		return ret;
@@ -123,33 +112,9 @@ $$          }
 		for (int i = 0; i < size; ++i) {
 			if (i != 0)
 				sb.append(", ");
-			sb.append(${WRAPPER}.toString(buffer[i]));
+			sb.append(Byte.toString(buffer[i]));
 		}
 		sb.append(']');
 		return sb.toString();
 	}
 }
-$$} // end of function
-$${
-    output("ByteStack.java");
-    body("Byte", "Byte", "byte");
-
-    output("CharStack.java");
-    body("Char", "Character", "char");
-    
-    output("ShortStack.java");
-    body("Short", "Short", "short");
-    
-    output("IntStack.java");
-    body("Int", "Integer", "int");
-    
-    output("LongStack.java");
-    body("Long", "Long", "long");
-    
-    output("FloatStack.java");
-    body("Float", "Float", "float");
-    
-    output("DoubleStack.java");
-    body("Double", "Double", "double");
-}$$
-
