@@ -69,6 +69,11 @@ public class NonblockingStack <E> {
 		return oldHead.item;
 	}
 
+	public void clear() {
+		while (size() > 0)
+			pop();
+	}
+
 	/**
 	 * 返回栈顶元素，但是并不弹出元素
 	 */

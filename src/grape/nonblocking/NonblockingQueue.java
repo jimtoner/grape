@@ -85,6 +85,11 @@ public class NonblockingQueue <E> {
 		}
 	}
 
+	public void clear() {
+		while (size() > 0)
+			pop();
+	}
+
 	/**
 	 * get head
 	 */

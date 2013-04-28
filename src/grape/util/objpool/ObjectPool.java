@@ -1,6 +1,6 @@
 package grape.util.objpool;
 
-import java.util.LinkedList;
+import grape.nonblocking.NonblockingQueue;
 
 /**
  * 对象池，用于对象复用，减少系统垃圾回收的压力
@@ -18,58 +18,51 @@ import java.util.LinkedList;
 public class ObjectPool <T> {
 
 	// 对象池
-	final LinkedList<T> pool;
+	private final NonblockingQueue<T> pool = new NonblockingQueue<T>();
 	// 对象工厂
-	final PoolableObjectFactory<T> factory;
+	private final PoolableObjectFactory<T> factory;
 
 	public ObjectPool(PoolableObjectFactory<T> factory) {
-		assert factory != null;
-		this.pool = new LinkedList<T>();
 		this.factory = factory;
 	}
 
 	public T borrowObject() {
-		// 进入临界区之前，预先判断一下
-		if (pool.isEmpty())
+		// 进入同步代码之前，预先判断一下
+		if (pool.size() == 0)
 			return factory.newObject();
 
-		synchronized (pool) {
-			// 进入临界区后需要重新判断容器是否为空
-			if (!pool.isEmpty())
-				return pool.removeFirst();
-		}
+		// 从池中取对象
+		T ret = pool.pop(); // 同步代码
 
-		// 新建对象过程可能比较慢，放在临界区之外
-		return factory.newObject();
+		if (ret == null)
+			return factory.newObject();
+		return ret;
 	}
 
 	/**
-	 * 推荐使用这样的写法：
-	 * T obj = ObjectPool.borrowObject();
+	 * 推荐使用这样的写法：<br/>
+	 * <code>
+	 * T obj = ObjectPool.borrowObject(); <br/>
 	 * obj = ObjectPool.returnObject(obj);
-	 * 在 returnObject的同时及时置空变量
+	 * </code><br/>
+	 * 用 returnObject() 的返回值及时置变量为 null
 	 *
 	 * @return 一定是 null
 	 */
 	public T returnObject(T obj) {
-		assert obj != null;
 		if (obj == null || pool.size() >= factory.maxCountPooled())
 			return null;
 
-		// 清除对象可能比较慢，放在临界区之外
+		// 清理对象
 		factory.passivateObject(obj);
 
-		synchronized (pool) {
-			// 这里就不用再判断 maxCountPooled() 了，仅仅多
-			// 几个对象应该不影响
-			pool.addLast(obj);
-		}
+		// 对象入池
+		pool.push(obj);
+
 		return null;
 	}
 
 	public void clear() {
-		synchronized (pool) {
-			pool.clear();
-		}
+		pool.clear();
 	}
 }
