@@ -8,148 +8,138 @@ public class LongArrayList implements RandomAccess, Cloneable, Serializable {
 
     private static final long serialVersionUID = 1L;
 
-    private static final int DEFAULT_INITICAL_CAPACITY = 16;
+    private int size = 0;
+    private long[] buffer = null;
 
-    private int size;
-    private long[] buffer;
-
-    public LongArrayList() {
-        this(DEFAULT_INITICAL_CAPACITY);
-    }
+    public LongArrayList() {}
 
     public LongArrayList(int initialCapacity) {
-        if (initialCapacity <= 0)
-            throw new IllegalArgumentException("Illegal capacity:"
-                    + initialCapacity);
+        if (initialCapacity < 0)
+            throw new IllegalArgumentException("Illegal capacity:" + initialCapacity);
+        else if (initialCapacity == 0)
+            return;
+
         buffer = new long[initialCapacity];
-        size = 0;
     }
 
     public LongArrayList(Collection<Long> c) {
         buffer = new long[c.size()];
-        size = 0;
         for (Long s : c)
             buffer[size++] = s;
     }
 
     public LongArrayList(LongArrayList c) {
-        buffer = new long[c.size];
-        System.arraycopy(c.buffer, 0, buffer, 0, c.size);
         size = c.size;
+        if (size > 0) {
+            // XXX System.arraycopy() 比 Arrays.copyOfRange() 快
+            buffer = new long[size];
+            System.arraycopy(c.buffer, 0, buffer, 0, size);
+        }
     }
 
     public LongArrayList(long[] values) {
         this(values, 0, values.length);
     }
 
-    public LongArrayList(long[] values, int value_begin, int len) {
-        if (value_begin < 0 || len < 0 || value_begin + len > values.length)
+    public LongArrayList(long[] values, int from, int to) {
+        if (from < 0 || from > to || to > values.length)
             throw new IllegalArgumentException();
 
-        buffer = new long[len];
-        System.arraycopy(values, value_begin, buffer, 0, len);
-        size = len;
+        size = to - from;
+        if (size > 0) {
+            buffer = new long[size];
+            System.arraycopy(values, from, buffer, 0, size);
+        }
     }
 
-    private void ensureCap(int new_size) {
-        if (new_size <= buffer.length)
+    /**
+     * 准备插入动作
+     */
+    private void prepareInserting(int index, int len) {
+        if (buffer != null && buffer.length >= size + len) {
+            System.arraycopy(buffer, index, buffer, index + len, size - index);
+            size += len;
             return;
+        }
 
-        int new_cap = buffer.length * 3 / 2;
-        if (new_cap < new_size)
-            new_cap = new_size;
-
+        int new_cap;
+        if (buffer == null) {
+            new_cap = size + len;
+        } else {
+            new_cap = buffer.length * 3 / 2;
+            if (new_cap < size + len)
+                new_cap = size + len;
+        }
+        
         long[] new_buf = new long[new_cap];
-        System.arraycopy(buffer, 0, new_buf, 0, size);
+        if (buffer != null && size > 0) {
+            System.arraycopy(buffer, 0, new_buf, 0, index);
+            System.arraycopy(buffer, index, new_buf, index + len, size - index);
+        }
+        size += len;
         buffer = new_buf;
     }
 
     public void add(long v) {
-        ensureCap(size + 1);
-        buffer[size++] = v;
+        add(size, v);
     }
 
     public void addAll(Collection<Long> c) {
-        for (Long s : c)
-            add(s);
+        addAll(size, c);
     }
 
     public void addAll(LongArrayList c) {
-        ensureCap(size + c.size);
-        System.arraycopy(c.buffer, 0, buffer, size, c.size);
-        size += c.size;
+        addAll(size, c);
     }
 
     public void addAll(long[] values) {
-        addAll(values, 0, values.length);
+        addAll(size, values, 0, values.length);
     }
 
-    public void addAll(long[] values, int value_begin, int len) {
-        if (value_begin < 0 || len < 0 || value_begin + len > values.length)
-            throw new IllegalArgumentException();
-
-        ensureCap(size + len);
-        System.arraycopy(values, value_begin, buffer, size, len);
-        size += len;
+    public void addAll(long[] values, int from, int to) {
+        addAll(size, values, from, to);
     }
 
     public void add(int index, long value) {
         if (index < 0 || index > size)
-            throw new IndexOutOfBoundsException("Index:" + index + " size:"
-                    + size);
+            throw new IndexOutOfBoundsException("Index:" + index + " size:" + size);
 
-        ensureCap(size + 1);
-        System.arraycopy(buffer, index, buffer, index + 1, size - index);
+        prepareInserting(index, 1);
         buffer[index] = value;
-        ++size;
     }
 
-    public void add(int index, Collection<Long> c) {
+    public void addAll(int index, Collection<Long> c) {
         if (index < 0 || index > size)
-            throw new IndexOutOfBoundsException("Index:" + index + " size:"
-                    + size);
+            throw new IndexOutOfBoundsException("Index:" + index + " size:" + size);
 
-        ensureCap(size + c.size());
-        System.arraycopy(buffer, index, buffer, index + c.size(), size - index);
-        for (Long s : c) {
+        prepareInserting(index, c.size());
+        for (Long s : c)
             buffer[index++] = s;
-        }
-        size += c.size();
     }
 
-    public void add(int index, LongArrayList c) {
+    public void addAll(int index, LongArrayList c) {
         if (index < 0 || index > size)
-            throw new IndexOutOfBoundsException("Index:" + index + " size:"
-                    + size);
+            throw new IndexOutOfBoundsException("Index:" + index + " size:" + size);
 
-        ensureCap(size + c.size());
-        System.arraycopy(buffer, index, buffer, index + c.size(), size - index);
+        prepareInserting(index, c.size);
         System.arraycopy(c.buffer, 0, buffer, index, c.size);
-        size += c.size();
     }
 
-    public void add(int index, long[] values) {
-        add(index, values, 0, values.length);
+    public void addAll(int index, long[] values) {
+        addAll(index, values, 0, values.length);
     }
 
-    public void add(int index, long[] values, int value_begin, int len) {
-        if (index < 0 || index > size || value_begin < 0 || len < 0
-                || value_begin + len > values.length)
+    public void addAll(int index, long[] values, int from, int to) {
+        if (index < 0 || index > size || from < 0 || from > to || to > values.length)
             throw new IllegalArgumentException();
 
-        ensureCap(size + len);
-        System.arraycopy(buffer, index, buffer, index + len, size - index);
-        System.arraycopy(values, value_begin, buffer, index, len);
-        size += len;
+        prepareInserting(index, to - from);
+        System.arraycopy(values, from, buffer, index, to - from);
     }
 
     public long remove(int index) {
-        if (index < 0 || index >= size)
-            throw new IndexOutOfBoundsException();
-
         long ret = buffer[index];
-        System.arraycopy(buffer, index + 1, buffer, index, size - index - 1);
-        --size;
+        removeRange(index, index + 1);
         return ret;
     }
 
@@ -157,7 +147,8 @@ public class LongArrayList implements RandomAccess, Cloneable, Serializable {
         if (from < 0 || from > to || to > size)
             throw new IllegalArgumentException();
 
-        System.arraycopy(buffer, to, buffer, from, size - to);
+        if (buffer != null)
+            System.arraycopy(buffer, to, buffer, from, size - to);
         size -= to - from;
     }
 
@@ -191,13 +182,17 @@ public class LongArrayList implements RandomAccess, Cloneable, Serializable {
         return removeAll(values, 0, values.length);
     }
 
-    public boolean removeAll(long[] values, int value_begin, int len) {
-        if (value_begin < 0 || len < 0 || value_begin + len > values.length)
+    /**
+     * @param from 在 values 数组中的起始位置
+     * @param to 在 values 数组中的终止位置
+     */
+    public boolean removeAll(long[] values, int from, int to) {
+        if (from < 0 || from > to || to > values.length)
             throw new IllegalArgumentException();
 
         int old_size = size;
-        for (int i = 0; i < len; ++i)
-            removeAll(values[value_begin + i]);
+        for (int i = from; i < to; ++i)
+            removeAll(values[i]);
         return old_size != size;
     }
 
@@ -246,7 +241,7 @@ public class LongArrayList implements RandomAccess, Cloneable, Serializable {
     }
 
     /**
-     * 没有找到则返�?-1
+     * 没有找到则返回 -1
      */
     public int indexOf(long v) {
         return indexOf(v, 0);
@@ -299,12 +294,12 @@ public class LongArrayList implements RandomAccess, Cloneable, Serializable {
         return containsAll(values, 0, values.length);
     }
 
-    public boolean containsAll(long[] values, int value_begin, int len) {
-        if (value_begin < 0 || len < 0 || value_begin + len > values.length)
+    public boolean containsAll(long[] values, int from, int to) {
+        if (from < 0 || from > to || to > values.length)
             throw new IllegalArgumentException();
 
-        for (int i = 0; i < len; ++i)
-            if (!contains(values[value_begin + i]))
+        for (int i = from; i < to; ++i)
+            if (!contains(values[i]))
                 return false;
         return true;
     }

@@ -131,25 +131,27 @@ $$          }
 }
 $$} // end of function
 $${
-    output("ByteStack.java");
+    string parent = "../src/grape/container/primeval/stack/";
+
+    output(parent + "ByteStack.java");
     body("Byte", "Byte", "byte");
 
-    output("CharStack.java");
+    output(parent + "CharStack.java");
     body("Char", "Character", "char");
     
-    output("ShortStack.java");
+    output(parent + "ShortStack.java");
     body("Short", "Short", "short");
     
-    output("IntStack.java");
+    output(parent + "IntStack.java");
     body("Int", "Integer", "int");
     
-    output("LongStack.java");
+    output(parent + "LongStack.java");
     body("Long", "Long", "long");
     
-    output("FloatStack.java");
+    output(parent + "FloatStack.java");
     body("Float", "Float", "float");
     
-    output("DoubleStack.java");
+    output(parent + "DoubleStack.java");
     body("Double", "Double", "double");
 }$$
 
