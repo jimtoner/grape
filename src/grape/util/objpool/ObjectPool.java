@@ -50,7 +50,7 @@ public class ObjectPool <T> {
 	 * @return 一定是 null
 	 */
 	public T returnObject(T obj) {
-		if (obj == null || pool.size() >= factory.maxCountPooled())
+		if (obj == null || pool.size() >= factory.maxPooled())
 			return null;
 
 		// 清理对象

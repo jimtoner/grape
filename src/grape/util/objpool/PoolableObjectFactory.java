@@ -20,7 +20,7 @@ public abstract class PoolableObjectFactory <T> {
 	/**
 	 * 最多缓存的对象数
 	 */
-	public int maxCountPooled() {
-		return 20;
+	public int maxPooled() {
+		return 10;
 	}
 }

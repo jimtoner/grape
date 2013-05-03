@@ -10,7 +10,7 @@ public class NonblockingStackTest {
 
 	@Test
 	public void testSmoke() {
-		NonblockingStack<Integer> q = new NonblockingStack<>();
+		NonblockingStack<Integer> q = new NonblockingStack<Integer>();
 		assertEquals(0, q.size());
 		assertTrue(q.isEmpty());
 
@@ -30,7 +30,7 @@ public class NonblockingStackTest {
 	// 对比性能测试
 	@Test
 	public void testSample() {
-		LinkedList<Integer> q = new LinkedList<>();
+		LinkedList<Integer> q = new LinkedList<Integer>();
 		assertEquals(0, q.size());
 		assertTrue(q.isEmpty());
 

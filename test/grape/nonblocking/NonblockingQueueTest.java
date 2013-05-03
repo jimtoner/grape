@@ -8,7 +8,7 @@ public class NonblockingQueueTest {
 
 	@Test
 	public void testSmoke() {
-		NonblockingQueue<Integer> q = new NonblockingQueue<>();
+		NonblockingQueue<Integer> q = new NonblockingQueue<Integer>();
 		assertEquals(0, q.size());
 		assertTrue(q.isEmpty());
 
