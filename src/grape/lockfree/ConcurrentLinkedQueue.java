@@ -77,7 +77,7 @@ public class ConcurrentLinkedQueue <E> {
 						size.decrementAndGet();
 
 						E ret = nextNode.item;
-						nextNode.item = null; // 不考虑严格控制内存泄露的情况下，这一句可省略
+						nextNode.item = null; // nextNode 作为新的 dummy 节点
 						return ret;
 					}
 				}
