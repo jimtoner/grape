@@ -1,14 +1,15 @@
-package grape.nonblocking;
+package grape.lockfree;
 
 import static org.junit.Assert.*;
+import grape.lockfree.ConcurrentQueue;
 
 import org.junit.Test;
 
-public class NonblockingQueueTest {
+public class ConcurrentQueueTest {
 
 	@Test
 	public void testSmoke() {
-		NonblockingQueue<Integer> q = new NonblockingQueue<Integer>();
+		ConcurrentQueue<Integer> q = new ConcurrentQueue<Integer>();
 		assertEquals(0, q.size());
 		assertTrue(q.isEmpty());
 

@@ -1,16 +1,18 @@
-package grape.nonblocking;
+package grape.lockfree;
 
 import static org.junit.Assert.*;
+
+import grape.lockfree.ConcurrentStack;
 
 import java.util.LinkedList;
 
 import org.junit.Test;
 
-public class NonblockingStackTest {
+public class ConcurrentStackTest {
 
 	@Test
 	public void testSmoke() {
-		NonblockingStack<Integer> q = new NonblockingStack<Integer>();
+		ConcurrentStack<Integer> q = new ConcurrentStack<Integer>();
 		assertEquals(0, q.size());
 		assertTrue(q.isEmpty());
 

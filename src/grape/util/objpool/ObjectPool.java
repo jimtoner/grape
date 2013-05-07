@@ -1,6 +1,6 @@
 package grape.util.objpool;
 
-import grape.nonblocking.NonblockingQueue;
+import grape.lockfree.ConcurrentQueue;
 
 /**
  * 对象池，用于对象复用，减少系统垃圾回收的压力
@@ -18,7 +18,7 @@ import grape.nonblocking.NonblockingQueue;
 public class ObjectPool <T> {
 
 	// 对象池
-	private final NonblockingQueue<T> pool = new NonblockingQueue<T>();
+	private final ConcurrentQueue<T> pool = new ConcurrentQueue<T>();
 	// 对象工厂
 	private final PoolableObjectFactory<T> factory;
 

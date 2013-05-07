@@ -1,14 +1,14 @@
-package grape.nonblocking;
+package grape.lockfree;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * 使用 Treiber 算法的并发无阻塞栈<br/>
+ * 使用 Treiber 算法的并发无锁栈<br/>
  * <br/>
  * 注意:<br/>
  * <ol>
- * <li> 这里并没有处理 CAS 操作的 ABA 问题</li>
+ * <li> 这里并没有处理 CAS 操作的 ABA 问题，但是并不影响正确性</li>
  * <li> 没有使用 <b>消隐(Shavit And Touitou)</b> 策略增加吞吐量，不适合作为高性能服务器关键节点</li>
  * </ol>
  *
@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * @author jingqi
  */
-public class NonblockingStack <E> {
+public class ConcurrentStack <E> {
 
 	private static class Node <E> {
 		final E item;
