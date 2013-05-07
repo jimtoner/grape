@@ -1,6 +1,6 @@
 package grape.util.objpool;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -12,51 +12,29 @@ import java.util.concurrent.atomic.AtomicReference;
 public class ObjectRing <T> {
 
 	// XXX 使用数组而不是链表，是为了避免反复的 new 节点
-	private final AtomicReference<T>[] array;
-	private final AtomicInteger from, to;
+	private final AtomicReference<T>[] ring;
 	private final PoolableObjectFactory<T> factory;
+	private final Random r = new Random();
 
 	@SuppressWarnings("unchecked")
 	public ObjectRing(PoolableObjectFactory<T> factory) {
 		this.factory = factory;
-		this.array = (AtomicReference<T>[]) new AtomicReference[factory.maxPooled() + 1];
-		for (int i = 0; i < array.length; ++i)
-			array[i] = new AtomicReference<T>();
-		from = new AtomicInteger(0);
-		to = new AtomicInteger(0);
-	}
-
-	private void increaseHead() {
-		int head, newHead;
-		do {
-			head = from.get();
-			newHead = (head + 1) % array.length;
- 		} while (!from.compareAndSet(head, newHead));
-	}
-
-	private void increaseTail() {
-		int tail, newTail;
-		do {
-			tail = to.get();
-			newTail = (tail + 1) % array.length;
-		} while (!to.compareAndSet(tail, newTail));
+		ring = (AtomicReference<T>[]) new AtomicReference[factory.maxPooled()];
+		for (int i = 0; i < ring.length; ++i)
+			ring[i] = new AtomicReference<T>();
 	}
 
 	public T borrowObject() {
-		while (true) {
-			int head = from.get();
-			if (head == to.get()) // 队列为空，或者 tail 滞后
-				break;
-
-			T ret = array[head].get();
-			if (ret == null) // head 滞后
-				continue;
-			if (array[head].compareAndSet(ret, null)) {
-				increaseHead();
+		// 从池中取出对象
+		int p = Math.abs(r.nextInt()) % ring.length;
+		for (int i = 0; i < ring.length; ++i) {
+			p = (p + 1) % ring.length;
+			T ret = ring[p].get();
+			if (ret != null && ring[p].compareAndSet(ret, null))
 				return ret;
-			}
 		}
 
+		// 重新新建对象
 		return factory.newObject();
 	}
 
@@ -64,16 +42,23 @@ public class ObjectRing <T> {
 		if (obj == null)
 			return null;
 
-		while (true) {
-			int tail = to.get();
-			int newTail = (tail + 1) % array.length;
-			if (newTail == from.get()) // 队列已满，或者 head 滞后
-				return null;
+		// 清理对象
+		factory.passivateObject(obj);
 
-			if (array[tail].compareAndSet(null, obj)) {
-				increaseTail();
+		// 对象入池
+		int p = Math.abs(r.nextInt()) % ring.length;
+		for (int i = 0; i < ring.length; ++i) {
+			p = (p + 1) % ring.length;
+			if (ring[p].compareAndSet(null, obj))
 				return null;
-			}
 		}
+
+		// 丢弃对象
+		return null;
+	}
+
+	public void clear() {
+		for (int i = 0; i < ring.length; ++i)
+			ring[i].set(null);
 	}
 }
