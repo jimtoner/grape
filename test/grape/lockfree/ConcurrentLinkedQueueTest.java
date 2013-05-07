@@ -1,15 +1,15 @@
 package grape.lockfree;
 
 import static org.junit.Assert.*;
-import grape.lockfree.ConcurrentQueue;
+import grape.lockfree.ConcurrentLinkedQueue;
 
 import org.junit.Test;
 
-public class ConcurrentQueueTest {
+public class ConcurrentLinkedQueueTest {
 
 	@Test
 	public void testSmoke() {
-		ConcurrentQueue<Integer> q = new ConcurrentQueue<Integer>();
+		ConcurrentLinkedQueue<Integer> q = new ConcurrentLinkedQueue<Integer>();
 		assertEquals(0, q.size());
 		assertTrue(q.isEmpty());
 

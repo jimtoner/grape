@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * @author jingqi
  */
-public class ConcurrentStack <E> {
+public class ConcurrentLinkedStack <E> {
 
 	private static class Node <E> {
 		final E item;

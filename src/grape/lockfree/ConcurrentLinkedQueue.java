@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * @author jingqi
  */
-public class ConcurrentQueue <E> {
+public class ConcurrentLinkedQueue <E> {
 
 	private static class Node <E> {
 		E item;

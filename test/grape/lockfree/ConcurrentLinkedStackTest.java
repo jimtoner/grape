@@ -2,17 +2,17 @@ package grape.lockfree;
 
 import static org.junit.Assert.*;
 
-import grape.lockfree.ConcurrentStack;
+import grape.lockfree.ConcurrentLinkedStack;
 
 import java.util.LinkedList;
 
 import org.junit.Test;
 
-public class ConcurrentStackTest {
+public class ConcurrentLinkedStackTest {
 
 	@Test
 	public void testSmoke() {
-		ConcurrentStack<Integer> q = new ConcurrentStack<Integer>();
+		ConcurrentLinkedStack<Integer> q = new ConcurrentLinkedStack<Integer>();
 		assertEquals(0, q.size());
 		assertTrue(q.isEmpty());
 
