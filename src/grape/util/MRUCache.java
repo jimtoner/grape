@@ -13,10 +13,10 @@ import java.util.Map;
  */
 public class MRUCache <K,V> {
 
-	private class Node {
+	private static class Node <K,V> {
 		K key;
 		V value;
-		Node pre, next;
+		Node<K,V> pre, next;
 
 		Node(K k, V v) {
 			key = k;
@@ -24,17 +24,20 @@ public class MRUCache <K,V> {
 		}
 	}
 
+	// 默认容量
 	private static final int DEFAULT_CAPACITY = 50;
 
-	private final int capacity;
-	private final Map<K,Node> map;
-	private final Node list;
+	private final Map<K, Node<K, V> > map;
+	private final Node<K, V> list; // 所有node组成环形链表，head为MRU，tail为LRU
+	private int capacity;
 
 	public MRUCache(int cap) {
-		assert cap > 0 : cap;
+		if (cap < 1)
+			throw new IllegalArgumentException();
+
 		capacity = cap;
-		map = new HashMap<K,Node>();
-		list = new Node(null,null); // 哨兵节点
+		map = new HashMap<K, Node<K,V> >();
+		list = new Node<K,V>(null, null); // 哨兵节点 NIL
 		list.pre = list;
 		list.next = list;
 	}
@@ -43,41 +46,55 @@ public class MRUCache <K,V> {
 		this(DEFAULT_CAPACITY);
 	}
 
+	/**
+	 * 从缓存中获取值
+	 *
+	 * @return null if miss
+	 * 		Non-null if hit
+	 */
+	public synchronized V get(K k) {
+		Node<K, V> n = map.get(k);
+		if (n == null)
+			return null;
+
+		// hit, then move the node to head
+		removeNode(n);
+		pushHead(n);
+
+		return n.value;
+	}
+
+	/**
+	 * 添加
+	 *
+	 * @return 被替换或者丢弃的数据
+	 */
 	public synchronized V put(K k, V v) {
-		assert k != null;
 		if (v == null)
 			return remove(k);
 
-		Node n = map.get(k);
+		// 更新 cache
+		Node<K, V> n = map.get(k);
 		V ret = null;
 		if (n == null) {
-			n = new Node(k,v);
+			n = new Node<K,V>(k,v);
 			map.put(k, n);
 			while (map.size() > capacity)
-				remove(list.pre.key);
+				ret = remove(list.pre.key); // remove tail
 		} else {
 			ret = n.value;
 			n.value = v;
-			removeListNode(n);
+			removeNode(n);
 		}
-		pushListHead(n);
+		pushHead(n);
 		return ret;
 	}
 
 	public synchronized V remove(K k) {
-		assert k != null;
-		Node n = map.remove(k);
+		Node<K, V> n = map.remove(k);
 		if (n == null)
 			return null;
-		removeListNode(n);
-		return n.value;
-	}
-
-	public synchronized V get(K k) {
-		assert k != null;
-		Node n = map.get(k);
-		if (n == null)
-			return null;
+		removeNode(n);
 		return n.value;
 	}
 
@@ -87,14 +104,24 @@ public class MRUCache <K,V> {
 		list.next = list;
 	}
 
-	private void removeListNode(Node n) {
-		assert n != null && n != list;
+	public int getCapacity() {
+		return capacity;
+	}
+
+	public void setCapacity(int cap) {
+		if (cap < 1)
+			throw new IllegalArgumentException();
+		capacity = cap;
+	}
+
+	// 摘除节点
+	private void removeNode(Node<K,V> n) {
 		n.pre.next = n.next;
 		n.next.pre = n.pre;
 	}
 
-	private void pushListHead(Node n) {
-		assert n != null && n != list;
+	// 插入到链首
+	private void pushHead(Node<K,V> n) {
 		n.next = list.next;
 		n.pre = list;
 		list.next.pre = n;
