@@ -79,7 +79,7 @@ public class MRUCache <K,V> {
 		if (n == null) {
 			n = new Node<K,V>(k,v);
 			map.put(k, n);
-			while (map.size() > capacity)
+			for (int i = map.size(); i > capacity; --i)
 				ret = remove(list.pre.key); // remove tail
 		} else {
 			ret = n.value;
