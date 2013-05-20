@@ -67,7 +67,7 @@ public class MRUCache <K,V> {
 	/**
 	 * 添加
 	 *
-	 * @return 被替换或者丢弃的数据
+	 * @return 被替换或者丢弃的数据(不一定是与 k 对应的原有数据)，可与对象池结合起来使用
 	 */
 	public synchronized V put(K k, V v) {
 		if (v == null)
@@ -75,17 +75,33 @@ public class MRUCache <K,V> {
 
 		// 更新 cache
 		Node<K, V> n = map.get(k);
-		V ret = null;
-		if (n == null) {
-			n = new Node<K,V>(k,v);
-			map.put(k, n);
-			for (int i = map.size(); i > capacity; --i)
-				ret = remove(list.pre.key); // remove tail
-		} else {
-			ret = n.value;
+		if (n != null) {
+			V ret = n.value;
 			n.value = v;
+			// hit, then move the node to head
 			removeNode(n);
+			pushHead(n);
+			return ret;
 		}
+
+		// 删除超出 capacity 的数据
+		V ret = null;
+		for (int i = map.size(); i >= capacity; --i) {
+			n = map.remove(list.pre.key); // remove tail
+			if (n == null)
+				break; // 容错
+			removeNode(n);
+			ret = n.value;
+		}
+
+		// 复用节点，插入数据
+		if (n != null) {
+			n.key = k;
+			n.value = v;
+		} else {
+			n = new Node<K,V>(k,v);
+		}
+		map.put(k, n);
 		pushHead(n);
 		return ret;
 	}
