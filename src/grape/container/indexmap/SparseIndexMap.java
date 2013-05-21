@@ -1,5 +1,7 @@
 package grape.container.indexmap;
 
+import java.util.Arrays;
+
 /**
  * 管理 [0, maxIndex) 范围内的<b>稀疏索引</b>映射
  *
@@ -89,6 +91,12 @@ public class SparseIndexMap <T> implements Iterable<T> {
 		Object ret = blocks[pdi][pei];
 		blocks[pdi][pei] = null;
 		return (T) ret;
+	}
+
+	public void clear() {
+		Arrays.fill(blocks, null);
+		firstIndex = -1;
+		lastIndex = -2;
 	}
 
 	public int getFirstIndex() {
