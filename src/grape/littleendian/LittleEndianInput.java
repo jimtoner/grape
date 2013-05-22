@@ -18,10 +18,11 @@
 package grape.littleendian;
 
 /**
- * 
+ *
  * @author Josh Micich
  */
 public interface LittleEndianInput {
+
 	int available();
 
 	byte readByte();
@@ -33,6 +34,8 @@ public interface LittleEndianInput {
 	int readUShort();
 
 	int readInt();
+
+	long readUInt();
 
 	long readLong();
 

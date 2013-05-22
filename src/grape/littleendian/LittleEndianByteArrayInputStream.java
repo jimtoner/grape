@@ -19,7 +19,7 @@ package grape.littleendian;
 
 /**
  * Adapts a plain byte array to {@link LittleEndianInput}
- * 
+ *
  * @author Josh Micich
  */
 public final class LittleEndianByteArrayInputStream implements
@@ -65,7 +65,7 @@ public final class LittleEndianByteArrayInputStream implements
 	}
 
 	@Override
-	public int readInt() {
+	public long readUInt() {
 		checkPosition(4);
 		int i = _readIndex;
 
@@ -74,7 +74,12 @@ public final class LittleEndianByteArrayInputStream implements
 		int b2 = _buf[i++] & 0xFF;
 		int b3 = _buf[i++] & 0xFF;
 		_readIndex = i;
-		return (b3 << 24) + (b2 << 16) + (b1 << 8) + (b0 << 0);
+		return ((long) b3 << 24) + ((long) b2 << 16) + ((long) b1 << 8) + ((long) b0 << 0);
+	}
+
+	@Override
+	public int readInt() {
+		return (int) readUInt();
 	}
 
 	@Override

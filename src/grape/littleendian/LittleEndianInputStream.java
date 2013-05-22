@@ -22,10 +22,10 @@ import java.io.*;
 /**
  * Wraps an {@link InputStream} providing {@link LittleEndianInput}
  * <p/>
- * 
+ *
  * This class does not buffer any input, so the stream read position maintained
  * by this class is consistent with that of the inner stream.
- * 
+ *
  * @author Josh Micich
  */
 public class LittleEndianInputStream extends FilterInputStream implements
@@ -66,7 +66,7 @@ public class LittleEndianInputStream extends FilterInputStream implements
 	}
 
 	@Override
-	public int readInt() {
+	public long readUInt() {
 		int ch1;
 		int ch2;
 		int ch3;
@@ -80,7 +80,12 @@ public class LittleEndianInputStream extends FilterInputStream implements
 			throw new RuntimeException(e);
 		}
 		checkEOF(ch1 | ch2 | ch3 | ch4);
-		return (ch4 << 24) + (ch3 << 16) + (ch2 << 8) + (ch1 << 0);
+		return ((long) ch4 << 24) + ((long) ch3 << 16) + ((long) ch2 << 8) + ((long) ch1 << 0);
+	}
+
+	@Override
+	public int readInt() {
+		return (int) readUInt();
 	}
 
 	@Override
