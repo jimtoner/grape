@@ -18,7 +18,7 @@ public class ConcurrentArrayQueue <T> {
 
 	public ConcurrentArrayQueue(int capacity) {
 		if (capacity < 0)
-			throw new IllegalArgumentException("illegal capacity " + capacity);
+			throw new IllegalArgumentException("Illegal capacity " + capacity);
 		ring = new Object[capacity + 1];
 	}
 
@@ -85,5 +85,9 @@ public class ConcurrentArrayQueue <T> {
 	public void clear() {
 		while (size() > 0)
 			pop();
+	}
+
+	public int capactity() {
+		return ring.length - 1;
 	}
 }
