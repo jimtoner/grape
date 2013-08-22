@@ -6,12 +6,12 @@ import java.util.*;
 /**
  * 跳表
  *
- * 跳表查询、插入、删除操作的时间复杂度为 O(log(n))，空间复杂度为O(n+log(n))
+ * 跳表查询、插入、删除操作的时间复杂度为 O(log(n))，空间复杂度为O(n)
  * 平衡二叉树查询、插入、删除操作的时间复杂度为 O(log(n))，空间复杂度为O(n)
  * 但跳表相比于平衡二叉树，其插入删除较容易，也容易实现lock-free
  */
 @SuppressWarnings({ "rawtypes", "unchecked"} )
-public class SkipList <K extends Comparable<K>, V> implements Map <K, V> {
+public class SkipListMap <K extends Comparable<K>, V> extends AbstractMap<K,V> implements Map <K, V> {
 
 	// 最大允许的层数(大于0)
 	private static final int MAX_LEVEL = 15;
@@ -19,10 +19,13 @@ public class SkipList <K extends Comparable<K>, V> implements Map <K, V> {
 	// 升级层数的概率阀值
 //	private static final double P = 0.5;
 
+	// 随机数发生器
+	private static final Random r = new Random();
+
 	private static class Node <K,V> implements Map.Entry<K, V> {
-		K key;
-		V value;
-		Node<K,V>[] next;
+		private K key;
+		private V value;
+		private Node<K,V>[] next;
 
 		@Override
 		public K getKey() {
@@ -66,12 +69,11 @@ public class SkipList <K extends Comparable<K>, V> implements Map <K, V> {
 
 	private Node<K,V>[] head = new Node[1];
 	private int size = 0;
-	private static final Random r = new Random();
 
 	/**
 	 * @return 0-based random level
 	 */
-	private static int randomLevel() {
+	static int randomLevel() {
 		/**
 		 * 下面两种实现，概率上是相同的，50%几率返回0，25%返回1, 12.5%返回2...
 		 *
@@ -141,29 +143,29 @@ public class SkipList <K extends Comparable<K>, V> implements Map <K, V> {
 
 					@Override
 					public void remove() {
-						SkipList.this.remove(current.key);
+						SkipListMap.this.remove(current.key);
 					}
 				};
 			}
 
 			@Override
 			public int size() {
-				return SkipList.this.size();
+				return SkipListMap.this.size();
 			}
 
 			@Override
 			public boolean contains(Object o) {
-				return SkipList.this.containsKey(o);
+				return SkipListMap.this.containsKey(o);
 			}
 
 			@Override
 			public boolean remove(Object o) {
-				return SkipList.this.remove(o) != null;
+				return SkipListMap.this.remove(o) != null;
 			}
 
 			@Override
 			public void clear() {
-				SkipList.this.clear();
+				SkipListMap.this.clear();
 			}
 		};
 	}
@@ -192,24 +194,24 @@ public class SkipList <K extends Comparable<K>, V> implements Map <K, V> {
 
 					@Override
 					public void remove() {
-						SkipList.this.remove(current.key);
+						SkipListMap.this.remove(current.key);
 					}
 				};
 			}
 
 			@Override
 			public int size() {
-				return SkipList.this.size();
+				return SkipListMap.this.size();
 			}
 
 			@Override
 			public boolean contains(Object o) {
-				return SkipList.this.containsValue(o);
+				return SkipListMap.this.containsValue(o);
 			}
 
 			@Override
 			public void clear() {
-				SkipList.this.clear();
+				SkipListMap.this.clear();
 			}
 		};
 	}
@@ -238,14 +240,14 @@ public class SkipList <K extends Comparable<K>, V> implements Map <K, V> {
 
 					@Override
 					public void remove() {
-						SkipList.this.remove(current.key);
+						SkipListMap.this.remove(current.key);
 					}
 				};
 			}
 
 			@Override
 			public int size() {
-				return SkipList.this.size();
+				return SkipListMap.this.size();
 			}
 
 			@Override
@@ -253,18 +255,18 @@ public class SkipList <K extends Comparable<K>, V> implements Map <K, V> {
 				if (!(o instanceof Map.Entry))
 					return false;
 				Map.Entry e = (Map.Entry) o;
-				Map.Entry candidate = SkipList.this.getEntry(e.getKey());
+				Map.Entry candidate = SkipListMap.this.getEntry(e.getKey());
 				return candidate != null && candidate.equals(e);
 			}
 
 			@Override
 			public boolean remove(Object o) {
-				return SkipList.this.removeMapping(o) != null;
+				return SkipListMap.this.removeMapping(o) != null;
 			}
 
 			@Override
 			public void clear() {
-				SkipList.this.clear();
+				SkipListMap.this.clear();
 			}
 		};
 	}
@@ -377,6 +379,7 @@ public class SkipList <K extends Comparable<K>, V> implements Map <K, V> {
 		Comparable<K> k = (Comparable<K>) key;
 		Node<K,V>[] pre_lv = new Node[head.length];
 		Node<K,V> pre = null;
+		boolean found = false;
 		int lv = head.length - 1;
 		do {
 			while (true) {
@@ -387,19 +390,23 @@ public class SkipList <K extends Comparable<K>, V> implements Map <K, V> {
 				}
 
 				int cmp = k.compareTo(n.key);
-				if (cmp <= 0) { // cmp==0时，即使找到了节点，也需要继续找下去，以便找到剩余的前趋节点
+				if (cmp < 0) {
 					pre_lv[lv] = pre;
 					break;
+				} else if (cmp == 0) {
+					pre_lv[lv] = pre;
+					found = true;
+					break; // 即使找到了节点，也需要继续找下去，以便找到剩余的前趋节点
 				} else {
 					pre = n;
 				}
 			}
 		} while (--lv >= 0);
-		Node<K,V> e = (pre_lv[0] == null ? head[0] : pre_lv[0].next[0]);
-		if (e == null)
+		if (!found)
 			return null; // 没有找到元素
 
 		// remove node
+		Node<K,V> e = (pre_lv[0] == null ? head[0] : pre_lv[0].next[0]);
 		int level = e.next.length;
 		for (int i = 0, len = pre_lv.length; i < len && i < level; ++i) {
 			if (pre_lv[i] == null)
@@ -422,6 +429,7 @@ public class SkipList <K extends Comparable<K>, V> implements Map <K, V> {
 		Comparable<K> k = (Comparable<K>) td.getKey();
 		Node<K,V>[] pre_lv = new Node[head.length];
 		Node<K,V> pre = null;
+		boolean found = false;
 		int lv = head.length - 1;
 		do {
 			while (true) {
@@ -432,17 +440,23 @@ public class SkipList <K extends Comparable<K>, V> implements Map <K, V> {
 				}
 
 				int cmp = k.compareTo(n.key);
-				if (cmp <= 0) { // cmp==0时，即使找到了节点，也需要继续找下去，以便找到剩余的前趋节点
+				if (cmp < 0) {
 					pre_lv[lv] = pre;
 					break;
+				} else if (cmp == 0) {
+					pre_lv[lv] = pre;
+					found = true;
+					break; // 即使找到了节点，也需要继续找下去，以便找到剩余的前趋节点
 				} else {
 					pre = n;
 				}
 			}
 		} while (--lv >= 0);
-		Node<K,V> e = (pre_lv[0] == null ? head[0] : pre_lv[0].next[0]);
-		if (e == null || !e.equals(td))
+		if (!found)
 			return null; // 没有找到节点
+		Node<K,V> e = (pre_lv[0] == null ? head[0] : pre_lv[0].next[0]);
+		if (!e.getValue().equals(td.getValue()))
+			return null; // 值不同
 
 		// remove node
 		int level = e.next.length;
@@ -456,6 +470,30 @@ public class SkipList <K extends Comparable<K>, V> implements Map <K, V> {
 		// 没有必要更改 head 的数组大小
 		--size;
 		return e;
+	}
+
+	@Override
+	public SkipListMap<K, V> clone() {
+		SkipListMap<K, V> ret = new SkipListMap<K, V>();
+		int level = level();
+		ret.head = new Node[level];
+		Node<K,V>[] pre_lv = new Node[level];
+		Node<K,V> n = head[0];
+		while (n != null) {
+			Node<K,V> c = new Node<K,V>();
+			c.key = n.key;
+			c.value = n.value;
+			c.next = new Node[n.next.length];
+			for (int i = 0; i < c.next.length; ++i) {
+				if (pre_lv[i] == null)
+					ret.head[i] = c;
+				else
+					pre_lv[i].next[i] = c;
+				pre_lv[i] = c;
+			}
+		}
+		ret.size = size;
+		return ret;
 	}
 
 	@Override

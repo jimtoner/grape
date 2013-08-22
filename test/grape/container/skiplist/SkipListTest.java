@@ -10,7 +10,7 @@ public class SkipListTest {
 
 	@Test
 	public void test() {
-		SkipList<Integer, String> sl = new SkipList<Integer, String>();
+		SkipListMap<Integer, String> sl = new SkipListMap<Integer, String>();
 		sl.put(2, "2");
 		sl.put(4, "4");
 		sl.put(3, "3");
@@ -22,7 +22,7 @@ public class SkipListTest {
 	@Test
 	public void testRandom() {
 		Random r = new Random();
-		SkipList<Integer, Integer> sl = new SkipList<Integer, Integer>();
+		SkipListMap<Integer, Integer> sl = new SkipListMap<Integer, Integer>();
 		int max = 1000;
 		for (int i = 0; i < max; ++i) {
 			sl.put(i, i);
