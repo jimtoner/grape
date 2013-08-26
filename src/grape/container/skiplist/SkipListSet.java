@@ -95,82 +95,105 @@ public class SkipListSet <K extends Comparable<K> > extends AbstractSet<K> imple
 
 	@Override
 	public boolean contains(Object key) {
-		return getEntry(key) != null;
+		return searchNode((Comparable<K>) key, null) != null;
 	}
 
-	private Node<K> getEntry(Object key) {
-		Comparable<K> k = (Comparable<K>) key;
-		Node<K> pre = null;
-		int lv = head.length - 1;
-		do {
-			while (true) {
-				Node<K> n = (pre == null ? head[lv] : pre.next[lv]);
-				if (n == null)
-					break;
-
-				int cmp = k.compareTo(n.key);
-				if (cmp < 0)
-					break;
-				else if (cmp == 0)
-					return n;
-				else
-					pre = n;
-			}
-		} while (--lv >= 0);
-		return null;
-	}
-
-	@Override
-	public boolean add(K key) {
-		// search
-		Comparable<K> k = (Comparable<K>) key;
-		Node<K>[] pre_lv = new Node[head.length];
-		Node<K> pre = null;
+	/**
+	 * 查找key所在的节点
+	 *
+	 * @param key 要查找的key
+	 * @param pre_lv 可以为null，前向节点数组(长度与{@link #head}相同)
+	 * @return 未找到则返回null
+	 */
+	private Node<K> searchNode(Comparable<K> key, Node<K>[] pre_lv) {
+		Node<K> pre = null, ret = null;
 		int lv = head.length - 1;
 		do {
 			while (true) {
 				Node<K> n = (pre == null ? head[lv] : pre.next[lv]);
 				if (n == null) {
-					pre_lv[lv] = pre;
+					if (pre_lv != null)
+						pre_lv[lv] = pre;
 					break;
 				}
 
-				int cmp = k.compareTo(n.key);
+				int cmp = key.compareTo(n.key);
 				if (cmp < 0) {
-					pre_lv[lv] = pre;
+					if (pre_lv != null)
+						pre_lv[lv] = pre;
 					break;
 				} else if (cmp == 0) {
-					return false;
+					if (pre_lv == null)
+						return n;
+					pre_lv[lv] = pre;
+					ret = n;
+					break; // 即使找到了节点，为了填充完前向节点数组，也需要继续查找下去
 				} else {
 					pre = n;
 				}
 			}
 		} while (--lv >= 0);
+		return ret;
+	}
+
+	/**
+	 * 插入节点
+	 *
+	 * @param n 如果其 {@link Node#next} 为 NULL，则会随机生成level数。否则使用已有的{@link Node#next}数组
+	 * @param pre_lv
+	 */
+	private void insertNode(Node<K> n, Node<K>[] pre_lv) {
+        // random level
+		if (n.next == null)
+			n.next = new Node[SkipListMap.randomLevel() + 1];
+
+        // adjust low-half level
+        for (int i = 0; i < head.length && i < n.next.length; ++i) {
+            if (pre_lv[i] == null) {
+            	n.next[i] = head[i];
+            	head[i] = n;
+            } else {
+                n.next[i] = pre_lv[i].next[i];
+                pre_lv[i].next[i] = n;
+            }
+        }
+
+        // adjust high-half level
+        if (n.next.length > head.length) {
+            Node<K>[] nh = new Node[n.next.length];
+            System.arraycopy(head, 0, nh, 0, head.length);
+            for (int i = head.length; i < n.next.length; ++i) {
+                nh[i] = n;
+                n.next[i] = null;
+            }
+            head = nh;
+        }
+	}
+
+	/**
+	 * 删除节点
+	 */
+	private void removeNode(Node<K> n, Node<K>[] pre_lv) {
+		for (int i = 0; i < pre_lv.length && i < n.next.length; ++i) {
+			if (pre_lv[i] == null)
+				head[i] = n.next[i];
+			else
+				pre_lv[i].next[i] = n.next[i];
+		}
+	}
+
+	@Override
+	public boolean add(K key) {
+		// search
+		Node<K>[] pre_lv = new Node[head.length];
+		Node<K> n = searchNode(key, pre_lv);
+		if (n != null)
+			return false;
 
 		// increase total level
-		Node<K> n = new Node<K>();
-		int level = SkipListMap.randomLevel();
-		if (level + 1 > head.length) {
-			Node<K>[] nh = new Node[level + 1];
-			System.arraycopy(head, 0, nh, 0, head.length);
-			Arrays.fill(nh, head.length, level + 1, n);
-			head = nh;
-		}
-
-		// insert node
+		n = new Node<K>();
 		n.key = key;
-		n.next = new Node[level + 1];
-		for (int i = 0, len = pre_lv.length; i < len && i <= level; ++i) {
-			Node<K> t;
-			if (pre_lv[i] == null) {
-				t = head[i];
-				head[i] = n;
-			} else {
-				t = pre_lv[i].next[i];
-				pre_lv[i].next[i] = n;
-			}
-			n.next[i] = t;
-		}
+		insertNode(n, pre_lv);
 		++size;
 		return true;
 	}
@@ -178,44 +201,13 @@ public class SkipListSet <K extends Comparable<K> > extends AbstractSet<K> imple
 	@Override
 	public boolean remove(Object key) {
 		// search
-		Comparable<K> k = (Comparable<K>) key;
 		Node<K>[] pre_lv = new Node[head.length];
-		Node<K> pre = null;
-		boolean found = false;
-		int lv = head.length - 1;
-		do {
-			while (true) {
-				Node<K> n = (pre == null ? head[lv] : pre.next[lv]);
-				if (n == null) {
-					pre_lv[lv] = pre;
-					break;
-				}
-
-				int cmp = k.compareTo(n.key);
-				if (cmp < 0) {
-					pre_lv[lv] = pre;
-					break;
-				} else if (cmp == 0) {
-					pre_lv[lv] = pre;
-					found = true;
-					break; // 即使找到了节点，也需要继续找下去，以便找到剩余的前趋节点
-				} else {
-					pre = n;
-				}
-			}
-		} while (--lv >= 0);
-		if (!found)
+		Node<K> n = searchNode((Comparable<K>) key, pre_lv);
+		if (n == null)
 			return false; // 没有找到元素
 
 		// remove node
-		Node<K> e = (pre_lv[0] == null ? head[0] : pre_lv[0].next[0]);
-		int level = e.next.length;
-		for (int i = 0, len = pre_lv.length; i < len && i < level; ++i) {
-			if (pre_lv[i] == null)
-				head[i] = e.next[i];
-			else
-				pre_lv[i].next[i] = e.next[i];
-		}
+		removeNode(n, pre_lv);
 
 		// 没有必要更改 head 的数组大小
 		--size;
