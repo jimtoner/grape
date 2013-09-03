@@ -27,7 +27,7 @@ public class SparseIndexMap <T> implements Iterable<T> {
 		if (maxIndex <= 0)
 			throw new IllegalArgumentException();
 
-		if (maxIndex < 256) {
+		if (maxIndex < 0x100) {
 			// size 太小，退化成一维数组
 			BLOCK_SHIFT = 8;
 			BLOCK_MASK = 0xFF;
@@ -108,11 +108,11 @@ public class SparseIndexMap <T> implements Iterable<T> {
 	}
 
 	@Override
-	public IndexMapIterator<T> iterator() {
+	public SparseIndexMapIterator<T> iterator() {
 		return iterator(firstIndex, lastIndex);
 	}
 
-	public IndexMapIterator<T> iterator(int first, final int last) {
-		return new IndexMapIterator<T>(this, first, last);
+	public SparseIndexMapIterator<T> iterator(int first, int last) {
+		return new SparseIndexMapIterator<T>(this, first, last);
 	}
 }

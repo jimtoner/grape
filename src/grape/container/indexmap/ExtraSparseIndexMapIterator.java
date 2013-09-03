@@ -3,17 +3,17 @@ package grape.container.indexmap;
 import java.util.Iterator;
 
 /**
- * {@link SparseIndexMap} 的迭代器
+ * {@link ExtraSparseIndexMap} 的迭代器
  */
-public class IndexMapIterator <T> implements Iterator<T> {
+public class ExtraSparseIndexMapIterator <T> implements Iterator<T> {
 
-	final SparseIndexMap<T> map;
+	final ExtraSparseIndexMap<T> map;
 	final int last;
 
 	int nextIndex;
 	int currentIndex = -1;
 
-	public IndexMapIterator(SparseIndexMap<T> map, int first, int last) {
+	public ExtraSparseIndexMapIterator(ExtraSparseIndexMap<T> map, int first, int last) {
 		this.map = map;
 		this.last = last;
 
@@ -32,15 +32,18 @@ public class IndexMapIterator <T> implements Iterator<T> {
 				break; // the end
 
 			// check block
-			int pdi = nextIndex >> map.BLOCK_SHIFT;
-			if (map.blocks[pdi] == null) {
-				nextIndex = (pdi + 1) << map.BLOCK_SHIFT;
+			int page_entry = nextIndex >> map.PAGE_ENTRY_SHIFT;
+			if (map.blocks[page_entry] == null) {
+				nextIndex = (page_entry + 1) << map.PAGE_ENTRY_SHIFT;
 				continue;
 			}
-
-			// check row
-			int pei = nextIndex & map.BLOCK_MASK;
-			if (map.blocks[pdi][pei] == null) {
+			int page_index = (nextIndex >> map.PAGE_SHIFT) & map.PAGE_MASK;
+			if (map.blocks[page_entry][page_index] == null) {
+				nextIndex = ((nextIndex >> map.PAGE_SHIFT) + 1) << map.PAGE_SHIFT;
+				continue;
+			}
+			int offset = nextIndex & map.OFFSET_MASK;
+			if (map.blocks[page_entry][page_index][offset] == null) {
 				++nextIndex;
 				continue;
 			}
