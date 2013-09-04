@@ -1,7 +1,7 @@
 package grape.container.primeval.objectmap;
 
-import java.io.*;
-import java.util.Arrays;
+import java.io.Serializable;
+import java.util.*;
 
 public class IntObjectHashMap <V> implements Cloneable, Serializable {
 
@@ -35,6 +35,11 @@ public class IntObjectHashMap <V> implements Cloneable, Serializable {
         
         public V getValue() {
             return value;
+        }
+        
+        @Override
+        public String toString() {
+            return Integer.toString(key) + ":" + value;
         }
     }
 
@@ -87,6 +92,18 @@ public class IntObjectHashMap <V> implements Cloneable, Serializable {
         return null;
     }
     
+    public void putAll(IntObjectHashMap<? extends V> m) {
+        if (m.size == 0)
+            return;
+
+        Entry<? extends V>[] t = m.table;
+        for (int i = 0, len = t.length; i < len; ++i) {
+            for (Entry<? extends V> e = t[i]; e != null; e = e.next) {
+                put(e.key, e.value);
+            }
+        }
+    }
+    
     public V get(int key) {
         int h = hash(key);
         Entry<V>[] t = table;
@@ -118,7 +135,58 @@ public class IntObjectHashMap <V> implements Cloneable, Serializable {
         Arrays.fill(table, null);
         size = 0;
     }
-    
+
+    public Iterator<Entry<V> > iterator() {
+    	return new Iterator<Entry<V>>() {
+    		int nextIndex;
+    		Entry<V> currentEntry, nextEntry;
+
+    		{
+    			Entry<V>[] t = IntObjectHashMap.this.table;
+    			for (int i = 0, len = t.length; i < len; ++i) {
+    				if (t[i] != null) {
+    					nextIndex = i;
+    					nextEntry = t[i];
+    					break;
+    				}
+    			}
+    		}
+
+    		private void advance() {
+    			currentEntry = nextEntry;
+    			nextEntry = nextEntry.next;
+    			if (nextEntry == null) {
+    				Entry<V>[] t = IntObjectHashMap.this.table;
+    				while (++nextIndex < t.length) {
+    					if (t[nextIndex] != null) {
+    						nextEntry = t[nextIndex];
+    						break;
+    					}
+    				}
+    			}
+    		}
+
+			@Override
+			public boolean hasNext() {
+				return nextEntry != null;
+			}
+
+			@Override
+			public Entry<V> next() {
+				if (!hasNext())
+					throw new NoSuchElementException();
+
+				advance();
+				return currentEntry;
+			}
+
+			@Override
+			public void remove() {
+				IntObjectHashMap.this.remove(currentEntry.key);
+			}
+		};
+    }
+
     public boolean containsKey(int key) {
         int h = hash(key);
         Entry<V>[] t = table;
@@ -175,7 +243,7 @@ public class IntObjectHashMap <V> implements Cloneable, Serializable {
     }
     
     @SuppressWarnings("unchecked")
-    public void doubleCapacity() {
+    private void doubleCapacity() {
         if (table.length == MAXIMUM_CAPACITY)
             return;
             
@@ -198,6 +266,22 @@ public class IntObjectHashMap <V> implements Cloneable, Serializable {
             }
         }
         table = newTable;
+    }
+    
+    @Override
+	public String toString() {
+    	StringBuilder sb = new StringBuilder("{");
+    	Iterator<Entry<V> > iter = iterator();
+    	while (iter.hasNext()) {
+    		Entry<V> e = iter.next();
+    		if (sb.length() != 1)
+    			sb.append(", ");
+    		sb.append(Integer.toString(e.key));
+    		sb.append(":");
+    		sb.append(e.value);
+    	}
+    	sb.append("}");
+    	return sb.toString();
     }
 }
 

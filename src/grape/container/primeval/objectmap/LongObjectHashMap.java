@@ -22,30 +22,30 @@ public class LongObjectHashMap <V> implements Cloneable, Serializable {
         long key;
         V value;
         Entry<V> next;
-
+        
         Entry(long k, V v, Entry<V> n) {
             this.key = k;
             this.value = v;
             this.next = n;
         }
-
+        
         public long getKey() {
             return key;
         }
-
+        
         public V getValue() {
             return value;
         }
-
+        
         @Override
-		public String toString() {
-        	return Long.toString(key) + ":" + value;
+        public String toString() {
+            return Long.toString(key) + ":" + value;
         }
     }
 
     private Entry<V>[] table;
     private int size;
-
+    
     /**
      * The table is rehashed when its size exceeds this threshold.
      * The value of this field is generally .75 * capacity, except when
@@ -53,11 +53,11 @@ public class LongObjectHashMap <V> implements Cloneable, Serializable {
      * above.
      */
     private transient int threshold;
-
+    
     public LongObjectHashMap() {
         this(MINIMUM_CAPACITY);
     }
-
+    
     @SuppressWarnings("unchecked")
     public LongObjectHashMap(int capacity) {
         if (capacity < MINIMUM_CAPACITY)
@@ -69,7 +69,7 @@ public class LongObjectHashMap <V> implements Cloneable, Serializable {
         table = (Entry<V>[]) new Entry[capacity];
         threshold = (capacity >> 1) + (capacity >> 2); // 3/4 capacity
     }
-
+    
     public V put(long key, V value) {
         int h = hash(key);
 
@@ -82,7 +82,7 @@ public class LongObjectHashMap <V> implements Cloneable, Serializable {
                 return oldValue;
             }
         }
-
+        
         if (++size > threshold) {
             doubleCapacity();
             t = table;
@@ -91,19 +91,19 @@ public class LongObjectHashMap <V> implements Cloneable, Serializable {
         t[index] = new Entry<V>(key, value, t[index]); // add new entry
         return null;
     }
-
+    
     public void putAll(LongObjectHashMap<? extends V> m) {
-    	if (m.size == 0)
-    		return;
+        if (m.size == 0)
+            return;
 
-    	Entry<? extends V>[] t = m.table;
-    	for (int i = 0, len = t.length; i < len; ++i) {
-    		for (Entry<? extends V> e = t[i]; e != null; e = e.next) {
-    			put(e.key, e.value);
-    		}
-    	}
+        Entry<? extends V>[] t = m.table;
+        for (int i = 0, len = t.length; i < len; ++i) {
+            for (Entry<? extends V> e = t[i]; e != null; e = e.next) {
+                put(e.key, e.value);
+            }
+        }
     }
-
+    
     public V get(long key) {
         int h = hash(key);
         Entry<V>[] t = table;
@@ -130,7 +130,7 @@ public class LongObjectHashMap <V> implements Cloneable, Serializable {
         }
         return null;
     }
-
+    
     public void clear() {
         Arrays.fill(table, null);
         size = 0;
@@ -205,7 +205,7 @@ public class LongObjectHashMap <V> implements Cloneable, Serializable {
                     return true;
         return false;
     }
-
+    
     public int size() {
         return size;
     }
@@ -213,7 +213,7 @@ public class LongObjectHashMap <V> implements Cloneable, Serializable {
     public boolean isEmpty() {
         return size == 0;
     }
-
+    
     private static int hash(long v) {
         // hash
         int h = (int) (v ^ (v >>> 32));
@@ -241,12 +241,12 @@ public class LongObjectHashMap <V> implements Cloneable, Serializable {
 
         return i + 1;
     }
-
+    
     @SuppressWarnings("unchecked")
-    public void doubleCapacity() {
+    private void doubleCapacity() {
         if (table.length == MAXIMUM_CAPACITY)
             return;
-
+            
         int newCapacity = table.length * 2;
         Entry<V>[] newTable = (Entry<V>[]) new Entry[newCapacity];
         threshold = (newCapacity >> 1) + (newCapacity >> 2); // 3/4 capacity
@@ -254,7 +254,7 @@ public class LongObjectHashMap <V> implements Cloneable, Serializable {
             table = newTable;
             return;
         }
-
+        
         for (int i = 0, len = table.length; i < len; ++i) {
             Entry<V> e = table[i];
             while (e != null) {
@@ -267,7 +267,7 @@ public class LongObjectHashMap <V> implements Cloneable, Serializable {
         }
         table = newTable;
     }
-
+    
     @Override
 	public String toString() {
     	StringBuilder sb = new StringBuilder("{");
