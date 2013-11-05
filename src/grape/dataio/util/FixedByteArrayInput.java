@@ -3,14 +3,14 @@ package grape.dataio.util;
 import grape.dataio.DataConsts;
 import grape.dataio.RandomAccessInput;
 
-public class ByteArrayInput implements RandomAccessInput {
+public class FixedByteArrayInput implements RandomAccessInput {
 
 	private final byte[] _buf;
 	private final int _endIndex;
 	private int _readIndex;
 	private boolean _littleEndian = true;
 
-	public ByteArrayInput(byte[] buf, int startOffset, int len) {
+	public FixedByteArrayInput(byte[] buf, int startOffset, int len) {
 		if (startOffset < 0 || len < 0 || startOffset + len > buf.length)
 			throw new IllegalArgumentException();
 
@@ -19,11 +19,11 @@ public class ByteArrayInput implements RandomAccessInput {
 		_endIndex = startOffset + len;
 	}
 
-	public ByteArrayInput(byte[] buf, int startOffset) {
+	public FixedByteArrayInput(byte[] buf, int startOffset) {
 		this(buf, startOffset, buf.length - startOffset);
 	}
 
-	public ByteArrayInput(byte[] buf) {
+	public FixedByteArrayInput(byte[] buf) {
 		this(buf, 0, buf.length);
 	}
 

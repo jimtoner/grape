@@ -1,6 +1,10 @@
 package grape.dataio;
 
 public interface RandomAccessOutput extends DelayableOutput {
+
+	@Override
+	RandomAccessOutput createDelayedOutput(int size);
+
 	/**
 	 * 返回当前指针位置
 	 */

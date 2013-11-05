@@ -3,14 +3,14 @@ package grape.dataio.util;
 import grape.dataio.DataConsts;
 import grape.dataio.RandomAccessOutput;
 
-public class ByteArrayOutput implements RandomAccessOutput {
+public class FixedByteArrayOutput implements RandomAccessOutput {
 
 	private final byte[] _buf;
 	private final int _endIndex;
 	private int _writeIndex;
 	private boolean _littleEndian = true;
 
-	public ByteArrayOutput(byte[] buf, int startOffset, int len) {
+	public FixedByteArrayOutput(byte[] buf, int startOffset, int len) {
 		if (startOffset < 0 || len < 0 || startOffset + len > buf.length)
 			throw new IllegalArgumentException();
 
@@ -19,11 +19,11 @@ public class ByteArrayOutput implements RandomAccessOutput {
 		_endIndex = startOffset + len;
 	}
 
-	public ByteArrayOutput(byte[] buf, int startOffset) {
+	public FixedByteArrayOutput(byte[] buf, int startOffset) {
 		this(buf, startOffset, buf.length - startOffset);
 	}
 
-	public ByteArrayOutput(byte[] buf) {
+	public FixedByteArrayOutput(byte[] buf) {
 		this(buf, 0, buf.length);
 	}
 
@@ -99,9 +99,9 @@ public class ByteArrayOutput implements RandomAccessOutput {
 	}
 
 	@Override
-	public ByteArrayOutput createDelayedOutput(int size) {
+	public FixedByteArrayOutput createDelayedOutput(int size) {
 		checkPosition(size);
-		ByteArrayOutput result = new ByteArrayOutput(_buf, _writeIndex, size);
+		FixedByteArrayOutput result = new FixedByteArrayOutput(_buf, _writeIndex, size);
 		_writeIndex += size;
 		return result;
 	}
