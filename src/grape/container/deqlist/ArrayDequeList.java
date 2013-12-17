@@ -34,7 +34,7 @@ public class ArrayDequeList<E> extends AbstractDequeList<E>
 			add(e);
 	}
 
-	// 空间不够是生成新的空间，否则返回原有buffer
+	// 空间不够时生成新的空间，否则返回原有buffer
 	private Object[] newBuffer(int minCap) {
 		if (minCap <= buffer.length - 1)
 			return buffer;

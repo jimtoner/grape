@@ -122,7 +122,7 @@ public abstract class AbstractDequeList<E> extends AbstractList<E>
 
 	@Override
 	public boolean removeLastOccurrence(Object o) {
-		int i = lastIndexOf(0);
+		int i = lastIndexOf(o);
 		if (i < 0)
 			return false;
 		remove(i);
