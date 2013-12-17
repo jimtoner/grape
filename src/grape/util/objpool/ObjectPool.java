@@ -32,7 +32,7 @@ public class ObjectPool <T> {
 			return factory.newObject();
 
 		// 从池中取对象
-		T ret = pool.pop(); // 同步代码
+		T ret = pool.tryPop(); // 同步代码
 
 		if (ret == null)
 			return factory.newObject();
@@ -57,7 +57,7 @@ public class ObjectPool <T> {
 		factory.passivateObject(obj);
 
 		// 对象入池
-		pool.push(obj);
+		pool.tryPush(obj);
 
 		return null;
 	}

@@ -20,7 +20,7 @@ public class ObjectRing <T> {
 	}
 
 	public T borrowObject() {
-		T ret = ring.pop();
+		T ret = ring.tryPop();
 		if (ret == null)
 			ret = factory.newObject();
 		return ret;
@@ -34,7 +34,7 @@ public class ObjectRing <T> {
 		factory.passivateObject(obj);
 
 		// 对象入池
-		ring.push(obj);
+		ring.tryPush(obj);
 
 		// 丢弃对象
 		return null;

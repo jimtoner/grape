@@ -57,9 +57,33 @@ public class ConcurrentLinkedQueue <E> {
 	}
 
 	/**
+	 * try to push to tail
+	 *
+	 * @return false if concurrent failure
+	 */
+	public boolean tryPush(E item) {
+		Node<E> newNode = new Node<E>(item);
+		Node<E> curTail = tail.get();
+		Node<E> residue = curTail.next.get();
+		if (curTail == tail.get()) {
+			if (residue == null) {
+				if (curTail.next.compareAndSet(null, newNode)) {
+					tail.compareAndSet(curTail, newNode); // 这一步如果失败，会在 * 步骤中修复
+					// increase size
+					size.incrementAndGet();
+					return true;
+				}
+			} else {
+				tail.compareAndSet(curTail, residue); // *
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * pop from head
 	 *
-	 * @return null if empty
+	 * @return null if queue is empty
 	 */
 	public E pop() {
 		while (true) {
@@ -83,6 +107,34 @@ public class ConcurrentLinkedQueue <E> {
 				}
 			}
 		}
+	}
+
+	/**
+	 * try to pop from head
+	 *
+	 * @return null if queue is empty or concurrent failure
+	 */
+	public E tryPop() {
+		Node<E> headNode = head.get();
+		Node<E> tailNode = tail.get();
+		Node<E> nextNode = headNode.next.get();
+		if (headNode == head.get()) {
+			if (headNode == tailNode) { // empty queue or tail falling behind
+				if (nextNode == null)
+					return null;
+				tail.compareAndSet(tailNode, nextNode); // tail failling behind, advance it
+			} else {
+				if (head.compareAndSet(headNode, nextNode)) {
+					// decrease size
+					size.decrementAndGet();
+
+					E ret = nextNode.item;
+					nextNode.item = null; // nextNode 作为新的 dummy 节点
+					return ret;
+				}
+			}
+		}
+		return null;
 	}
 
 	public void clear() {
