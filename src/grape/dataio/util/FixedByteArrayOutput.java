@@ -41,18 +41,18 @@ public class FixedByteArrayOutput implements RandomAccessOutput {
 	}
 
 	@Override
-	public void writeByte(byte v) {
+	public void writeByte(int v) {
 		checkPosition(1);
-		_buf[_writeIndex++] = v;
+		_buf[_writeIndex++] = (byte) v;
 	}
 
 	@Override
-	public void writeShort(short v) {
+	public void writeShort(int v) {
 		checkPosition(DataConsts.SHORT_SIZE);
 		if (_littleEndian)
-			LittleEndian.putShort(_buf, _writeIndex, v);
+			LittleEndian.putShort(_buf, _writeIndex, (short) v);
 		else
-			BigEndian.putShort(_buf, _writeIndex, v);
+			BigEndian.putShort(_buf, _writeIndex, (short) v);
 		_writeIndex += DataConsts.SHORT_SIZE;
 	}
 

@@ -25,7 +25,7 @@ public class DelayedRandomAcceesOutput implements RandomAccessOutput {
 	}
 
 	@Override
-	public void writeByte(byte v) {
+	public void writeByte(int v) {
 		checkPosition(1);
 
 		final long oldIndex = _output.tell();
@@ -36,7 +36,7 @@ public class DelayedRandomAcceesOutput implements RandomAccessOutput {
 	}
 
 	@Override
-	public void writeShort(short v) {
+	public void writeShort(int v) {
 		checkPosition(DataConsts.SHORT_SIZE);
 
 		final long oldIndex = _output.tell();

@@ -21,7 +21,7 @@ public class DataOutputStream extends FilterOutputStream implements Output {
 	}
 
 	@Override
-	public void writeByte(byte v) {
+	public void writeByte(int v) {
 		try {
 			out.write(v);
 		} catch (IOException e) {
@@ -30,7 +30,7 @@ public class DataOutputStream extends FilterOutputStream implements Output {
 	}
 
 	@Override
-	public void writeShort(short v) {
+	public void writeShort(int v) {
 		int b0 = v & 0xFF;
 		int b1 = (v >>> 8) & 0xFF;
 		try {

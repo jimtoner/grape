@@ -2,9 +2,9 @@ package grape.dataio;
 
 public interface Output {
 
-	void writeByte(byte v);
+	void writeByte(int v);
 
-	void writeShort(short v);
+	void writeShort(int v);
 
 	void writeInt(int v);
 

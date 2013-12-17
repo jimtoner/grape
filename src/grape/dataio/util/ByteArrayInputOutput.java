@@ -119,18 +119,18 @@ public class ByteArrayInputOutput implements RandomAccessInput, RandomAccessOutp
 	}
 
 	@Override
-	public void writeByte(byte v) {
+	public void writeByte(int v) {
 		checkWritePosition(1);
-		_buf[_index++] = v;
+		_buf[_index++] = (byte) v;
 	}
 
 	@Override
-	public void writeShort(short v) {
+	public void writeShort(int v) {
 		checkWritePosition(DataConsts.SHORT_SIZE);
 		if (_littleEndian)
-			LittleEndian.putShort(_buf, _index, v);
+			LittleEndian.putShort(_buf, _index, (short) v);
 		else
-			BigEndian.putShort(_buf, _index, v);
+			BigEndian.putShort(_buf, _index, (short) v);
 		_index += DataConsts.SHORT_SIZE;
 	}
 
